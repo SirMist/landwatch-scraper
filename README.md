@@ -1,1835 +1,1288 @@
-[Landwatch Scraper](https://apify.com/fatihtahta/landwatch-scraper?fpr=data)
+[Landwatch Scraper](https://apify.com/memo23/landwatch-scraper?fpr=data)
 
-# LandWatch.com Scraper
+# LandWatch Property and Agent Scraper
 
-**Slug:** `fatihtahta/lanswatch-com-scraper`
+**Unlock the Full Power of LandWatch Property and Agent Data** - The only scraper you need to track, analyze, and understand real estate listings and agent information on LandWatch with enterprise-grade reliability and precision. Whether you're monitoring property markets, tracking price trends, or conducting real estate research, our scraper delivers comprehensive, real-time insights while saving you time and resources.
+
+*"From real-time property monitoring to deep market analysis, we turn LandWatch's property and agent data into your competitive advantage."*
+
+## What You Can Scrape
+
+This scraper supports two main types of scraping:
+
+1. **Agent Lists**
+
+- Scrape lists of agents from URLs like: `https://www.landwatch.com/find-agent/austin-county-tx`
+- Extracts basic information about multiple agents in a region
+- Useful for market research and finding specific agents
+2. **Agent Details**
+
+- Scrape detailed information about individual agents from URLs like: `https://www.landwatch.com/profile/homeland-properties/174024`
+- Extracts comprehensive information including:
+
+- Broker details
+- Property listings
+- Historical sales data
+- Contact information
+- Social media links
+- And much more
+
+## Supported URLs
+
+All URLs must be on `landwatch.com`. The scraper auto-detects the URL type and applies the right handler.
+
+**Land listings** (search results — pages produce many listing rows):
+
+- State / county listings, with optional category and price filters
+
+- `https://www.landwatch.com/texas-land-for-sale/price-under-6000`
+- `https://www.landwatch.com/nebraska-land-for-sale/farms-ranches/price-250000-499999`
+- `https://www.landwatch.com/south-carolina-land-for-sale/gray-court`
+- Individual property pages
+
+- `https://www.landwatch.com/laurens-county-south-carolina-undeveloped-land-for-sale/pid/422387154`
+
+**Find an Agent** (broker/agent directory):
+
+- By location: `https://www.landwatch.com/find-agent/austin-county-t/`
+- By name: `https://www.landwatch.com/find-agent/name/john/`
+- Individual agent profile: `https://www.landwatch.com/profile/homeland-properties/174024`
+
+Page numbers in the URL don't matter — the scraper paginates automatically until it hits `maxItems` or the end of results.
 
 ## Overview
 
-LandWatch.com Scraper collects structured public real estate listing data from LandWatch, including listing identity, title, description, pricing, acreage, residential attributes, location, broker details, media, features, listing history, and related listing context. [LandWatch](https://www.landwatch.com) is a public marketplace for land, acreage, farms, ranches, homesites, recreational property, and other rural real estate, making its listings useful for market research, lead qualification, investment screening, and inventory monitoring. The actor converts search and filter configurations into repeatable dataset outputs that are easier to analyze than manual browsing. It is designed for automated, recurring data acquisition where consistent JSON records, predictable limits, and operational review matter. Use it to support dependable collection workflows without assuming that every listing, field, or source-side attribute will be available in every run.
+The LandWatch Scraper is your go-to tool for extracting property data from LandWatch.com. Ideal for real estate investors, market analysts, and property researchers, it tracks property details, pricing, and listing information. With easy setup and multiple export formats (JSON, CSV), it's perfect for anyone looking to gather comprehensive property data from LandWatch.
 
-## Why Use This Actor
+## What does LandWatch Scraper do?
 
-- **Market research and analytics teams:** build market intelligence datasets for supply, price, acreage, property-type mix, broker activity, and regional inventory trends.
-- **Product and content teams:** populate internal directories, comparison experiences, editorial research, or property discovery workflows with normalized listing data.
-- **Developers and data engineering teams:** feed structured extraction results into downstream systems, ETL jobs, warehouses, enrichment pipelines, and operational reporting.
-- **Lead generation and enrichment teams:** identify public broker, seller, and property attributes that can support qualification, segmentation, and CRM enrichment.
-- **Monitoring and competitive tracking teams:** schedule repeatable collection to detect changes in pricing, availability, listing updates, and market movement over time.
+The LandWatch Scraper is a powerful tool that enables you to:
 
-## Common Use Cases
+### Comprehensive Property Data Collection
 
-- **Market intelligence:** monitor land supply, pricing, price-per-acre movement, acreage bands, listing availability, and geographic coverage.
-- **Lead generation:** build targeted prospect lists from public land, farm, ranch, residential, and broker listing data.
-- **Competitive monitoring:** track changes in listings, pricing, property categories, broker inventory, and recently updated records.
-- **Catalog and directory building:** populate internal real estate databases with structured public listing records.
-- **Data enrichment:** add current public property, location, broker, media, and feature attributes to CRM, BI, or analytics datasets.
-- **Recurring reporting:** schedule periodic runs for dashboards, alerts, market summaries, and trend analysis.
+- Extract complete property details and specifications
+- Scrape historical listing data and price changes
+- Gather comprehensive property features and amenities
+- Analyze property locations and surrounding areas
+- Download property images and media
 
-## Quick Start
+### Advanced Scraping Capabilities
 
-1. Choose the listing scope with `deal_type` and `availability`.
-2. Add a `location`, `property_type`, keyword, pricing, acreage, timing, or feature filters when you need a narrower dataset.
-3. Set a small `limit`, such as 25 or 50, for the first validation run.
-4. Run the actor in Apify Console.
-5. Inspect the first dataset records to confirm that the output shape and field coverage match your use case.
-6. Increase coverage, adjust filters, enable scheduling, or use `maximize_coverage` and `enrich_data` once the output is verified.
+- **Pagination Handling**: Automatically navigates through multiple pages of search results
+- **Efficient Processing**: Processes only new or updated listings in subsequent runs
+- **Change Detection**: Identifies price changes, status updates, and new listings
+- **Scheduled Monitoring**: Set up automated runs to keep your property data current
+- **Incremental Data Collection**: Build comprehensive property datasets over time
 
-## Input Parameters
+### Flexible Scraping Options
 
-This actor accepts LandWatch search scope, location, property, timing, feature, price, acreage, building, bedroom, bathroom, sorting, limit, coverage, and enrichment controls.
+- **Search Results**: Extract all properties matching specific search criteria
+- **Targeted Scraping**: Focus on individual property listings using direct URLs
+- **Location-Based Scraping**: Target specific areas, cities, or regions
+- **Custom Filters**: Apply various filters like price range, property type, and more
 
-| Parameter | Type | Description | Default |
-| --- | --- | --- | --- |
-| `deal_type` | string | Listing deal type. Allowed values: `for_sale`, `auction`. Leave empty to avoid limiting by deal type. | – |
-| `availability` | array of strings | Listing statuses to include. Allowed values: `buy`, `under_contract`, `off_market`, `sold`. | `["buy", "under_contract"]` |
-| `location` | string | Free-text location such as `California`, `Los Angeles County CA`, or `Ramona CA`. | – |
-| `property_type` | string | Property category. Allowed values: `commercial`, `farms_and_ranches`, `homesite`, `horse`, `house`, `hunting`, `lakefront`, `oceanfront`, `recreational`, `riverfront`, `timberland`, `undeveloped`, `waterfront`. | – |
-| `price_reduction_period` | string | Only include listings with a price reduction in the selected window. Allowed values: `3_days`, `7_days`, `30_days`, `60_days`, `90_days`. | – |
-| `publication_date` | string | Only include listings first published in the selected window. Allowed values: `1_day`, `7_days`, `30_days`, `60_days`. | – |
-| `keyword` | string | Keyword or phrase used to focus matching listings. | – |
-| `owner_financing` | boolean | Include only listings that offer owner financing. | `false` |
-| `mineral_rights` | boolean | Include only listings that mention mineral rights. | `false` |
-| `virtual_tour` | boolean | Include only listings that provide a virtual tour. | `false` |
-| `exterior_tour` | boolean | Include only listings that provide an exterior tour. | `false` |
-| `property_video` | boolean | Include only listings that provide a property video. | `false` |
-| `custom_map` | boolean | Include only listings that provide a custom map. | `false` |
-| `min_price` | integer | Minimum listing price in USD. Must be 0 or greater. | – |
-| `max_price` | integer | Maximum listing price in USD. Must be 0 or greater. | – |
-| `min_area_parcel` | number | Minimum parcel size in acres. Must be 0 or greater. | – |
-| `max_area_parcel` | number | Maximum parcel size in acres. Must be 0 or greater. | – |
-| `min_area_building` | number | Minimum building size in square feet. Must be 0 or greater. | – |
-| `max_area_building` | number | Maximum building size in square feet. Must be 0 or greater. | – |
-| `min_bedroom` | integer | Minimum number of bedrooms. Must be 0 or greater. | – |
-| `max_bedroom` | integer | Maximum number of bedrooms. Must be 0 or greater. | – |
-| `min_bathroom` | integer | Minimum number of bathrooms. Must be 0 or greater. | – |
-| `max_bathroom` | integer | Maximum number of bathrooms. Must be 0 or greater. | – |
-| `sort_by` | string | Result order. Allowed values: `default`, `acres_small_to_large`, `acres_large_to_small`, `newest`, `price_low_to_high`, `price_high_to_low`, `price_per_acre_low_to_high`, `price_per_acre_high_to_low`, `recently_changed`. | `default` |
-| `limit` | integer | Maximum number of listings to save for each location. Must be 1 or greater. Leave empty to collect all available matching listings. | – |
-| `maximize_coverage` | boolean | Collect a broader set of matching listings for production-style runs. Disable for faster exploratory runs. | `true` |
-| `enrich_data` | boolean | Include richer listing details such as descriptions, parcel identifiers, amenities, listing history, media, and broker contact details when available. | `true` |
+This tool is ideal for:
 
-## Choosing Inputs
+- Real estate market research and analysis
+- Property investment analysis and due diligence
+- Competitive market analysis
+- Building property databases for investment decisions
+- Tracking price trends and market movements
 
-Use `location` when you need a state, county, city, or local-market view. Add `property_type`, price, parcel acreage, building size, bedroom, bathroom, feature, and timing filters when the goal is a targeted dataset; leave optional filters empty when the goal is broader discovery. Narrower filters produce cleaner, more focused output, while broader filters improve coverage and are better for exploratory market analysis. Use `publication_date`, `price_reduction_period`, and `sort_by` for monitoring workflows where freshness, recent changes, or ordered review matters. Start with a small `limit` to validate record shape and field coverage, then increase the limit or enable broader collection once the output is ready for downstream use.
+## Features
 
-## Example Inputs
+- **Comprehensive Data Extraction**: Detailed property information, pricing, and specifications
+- **Dual Scraping Modes**:
 
-### Location and category validation run
+- **Search Results**: Scrape all properties from search results (e.g., `https://www.landwatch.com/south-carolina-land-for-sale/gray-court`)
+- **Individual Listings**: Target specific properties using direct URLs (e.g., `https://www.landwatch.com/laurens-county-south-carolina-undeveloped-land-for-sale/pid/422387154`)
+- **Flexible Input**: Supports multiple input formats:
 
-```
-{
-  "deal_type": "for_sale",
-  "availability": ["buy", "under_contract"],
-  "location": "Bland County VA",
-  "property_type": "farms_and_ranches",
-  "sort_by": "newest",
-  "limit": 25,
-  "enrich_data": true
-}
-```
+- Search result URLs (e.g., `https://www.landwatch.com/south-carolina-land-for-sale/gray-court`)
+- Direct property URLs (e.g., `https://www.landwatch.com/laurens-county-south-carolina-undeveloped-land-for-sale/pid/422387154`)
+- Custom search criteria
+- **Automatic Pagination**: Handles multi-page results automatically
+- **Efficient Processing**: Concurrent scraping with configurable concurrency settings
+- **Reliable Performance**: Built-in retry mechanisms and proxy support
+- **Structured Data Export**: Download property data in JSON or CSV format for analysis
 
-### Recently changed price monitoring
+## How to Use
+
+### Scraping land listings
+
+1. **Set Up**: Ensure you have an Apify account and access to the Apify platform.
+2. **Configure Input**: Paste a search URL from your browser (state, county, filters, all welcome), e.g. `https://www.landwatch.com/texas-land-for-sale/price-under-6000`. You can also paste an individual `/pid/...` URL to scrape a single property.
+3. **Adjust Settings**: Configure `maxItems`, `flattenOutput`, `fetchSellerAgentDetails`, and proxy as needed.
+4. **Run the Scraper**: Execute the scraper on the Apify platform.
+5. **Data Collection**: The scraper paginates automatically and outputs one row per property.
+
+### Scraping agents (Find an Agent)
+
+1. **Set Up**: Ensure you have an Apify account and access to the Apify platform.
+2. **Configure Input**: Paste a Find an Agent URL — by location (`https://www.landwatch.com/find-agent/austin-county-t/`) or by name (`https://www.landwatch.com/find-agent/name/john/`). You can also paste an individual `/profile/...` URL to scrape a single agent.
+3. **Run the Scraper**: Execute the scraper on the Apify platform.
+4. **Data Collection**: The scraper paginates automatically and outputs one row per agent / broker.
+
+## Input Configuration
+
+Example input:
 
 ```
 {
-  "availability": ["buy"],
-  "location": "Virginia",
-  "price_reduction_period": "30_days",
-  "min_price": 100000,
-  "max_price": 750000,
-  "sort_by": "recently_changed",
-  "limit": 100
-}
-```
-
-### Broad discovery with conservative output
-
-```
-{
-  "deal_type": "for_sale",
-  "availability": ["buy"],
-  "keyword": "waterfront",
-  "min_area_parcel": 10,
-  "property_type": "waterfront",
-  "limit": 50,
-  "maximize_coverage": true,
-  "enrich_data": false
-}
-```
-
-## Output
-
-### Output destination
-
-The actor writes results to an Apify dataset as JSON records. The dataset is designed for direct consumption by analytics tools, ETL pipelines, and downstream APIs with minimal post-processing.
-
-The provided Example Output contains one primary record shape: a LandWatch listing record. If future runs expose additional entity shapes, document and validate each shape separately before relying on it in production workflows.
-
-### Record envelope and stable identifiers
-
-Each dataset item is a listing record with top-level listing identity fields such as `id`, `url`, `title`, and `description`, plus nested objects for identifiers, pricing, property attributes, location, broker information, listing metadata, features, media, history, maps, source schemas, related listings, SEO metadata, source context, and `fingerprint`.
-
-Recommended idempotency key: use `id` as the primary stable key, with `url` and `fingerprint` as secondary checks when syncing repeated runs. For deduplication or upserts, merge records by `id` first and compare `fingerprint` when you need to detect record-level changes. Stable identifiers make records easier to merge, deduplicate, and sync across repeated runs. The `fingerprint` field appears in the output and can be used as a compact change-detection value for repeated collection.
-
-### Examples
-
-Example: LandWatch listing record
-
-```
-{
-  "id": 423149960,
-  "url": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960",
-  "title": "4149 NE Suiter Rd Bastian, VA 24314",
-  "description": "This is a must see home. It has everything from a 24 foot vaulted ceiling to your own private library. This home has some beautifully designed stain glass windows which allows radiant sunlight into the home. You will enjoy the view of the valley from your wrap around porch. For anyone who enjoys the outdoors and nature this property joins the National Forest. There is a metal building for projects and also a pole barn for horses or cattle. The property boarders Hunting Camp Creek. You will have to see this property to appreciate all that it has to offer.",
-  "identifiers": {
-    "landwatch_property_id": 423149960,
-    "site_listing_id": 423149960,
-    "listing_id": 23745464,
-    "source_record_id": 23745464,
-    "laf_property_id": 37779841,
-    "account_id": 9722,
-    "account_type": 40,
-    "site_id": 1113,
-    "parent_account_id": 0,
-    "partner_id": 0,
-    "parcel_id": "0|2822|74-A-10A|1",
-    "mls_id": "99072"
-  },
-  "pricing": {
-    "price": 605000,
-    "price_text": "$605,000",
-    "short_price": "$605K",
-    "price_per_acre": 12648.97,
-    "price_change_amount": -34000,
-    "price_change_text": "-$34K",
-    "price_change_date": "2025-12-15T08:53:06.267",
-    "price_change_percentage": -0.0532,
-    "sales_price": 0
-  },
-  "property": {
-    "acres": 47.83,
-    "acres_text": "47.83 acres",
-    "beds": 3,
-    "beds_text": "3 beds",
-    "baths": 2,
-    "baths_text": "2 baths",
-    "half_baths": 1,
-    "home_sqft": 2564,
-    "home_sqft_text": "2,564 sqft",
-    "types": [
-      "Farms and Ranches",
-      "House"
+    "startUrls": [
+        "https://www.landwatch.com/texas-land-for-sale/price-under-6000",
+        "https://www.landwatch.com/find-agent/austin-county-t/",
+        "https://www.landwatch.com/laurens-county-south-carolina-undeveloped-land-for-sale/pid/422387154",
+        "https://www.landwatch.com/profile/homeland-properties/174024"
     ],
-    "types_text": "Farms and Ranches, House",
-    "type_code": 8195,
-    "type_ids": [
-      1,
-      2,
-      8192
-    ],
-    "ad_targeting_property_type": "farms and ranches",
-    "has_house": true,
-    "is_residence": true,
-    "is_irrigated": false,
-    "is_listhub_listing": false,
-    "can_display": false,
-    "should_redirect_detail_page": false,
-    "link_infos": [
-      {
-        "label": "Farms and Ranches",
-        "url": "https://www.landwatch.com/virginia-land-for-sale/bland-county/farms-ranches"
-      },
-      {
-        "label": "House",
-        "url": "https://www.landwatch.com/virginia-land-for-sale/bland-county/homes"
-      }
-    ]
-  },
-  "location": {
-    "address": "4149 Suiter Rd",
-    "city": "Bastian",
-    "city_id": 1604,
-    "city_url": "https://www.landwatch.com/virginia-land-for-sale/bastian",
-    "county": "Bland County",
-    "county_id": 5105,
-    "county_fips": 51021,
-    "county_laf_id": 1936,
-    "county_url": "https://www.landwatch.com/virginia-land-for-sale/bland-county",
-    "county_label": "County",
-    "state": "Virginia",
-    "state_code": "VA",
-    "state_id": 51,
-    "state_tax_rate": 0.8,
-    "postal_code": "24314",
-    "region_id": 222,
-    "region": "Mountain Virginia",
-    "ad_targeting_county_id": 5105,
-    "coordinates": {
-      "latitude": 37.116016,
-      "longitude": -81.211655
-    },
-    "geocode_accuracy": 9,
-    "cities_in_county": [
-      "Bastian",
-      "Bland",
-      "Ceres",
-      "Rocky Gap",
-      "Grapefield",
-      "Hicksville",
-      "Byron",
-      "Carnot",
-      "Clear Fork",
-      "Crandon",
-      "Eagle Oak",
-      "Effna",
-      "Groseclose Store",
-      "Holly Brook",
-      "Kimberling",
-      "Mechanicsburg",
-      "Niday",
-      "North Gap",
-      "Point Pleasant",
-      "Pumpkin Center",
-      "Round Bottom",
-      "Sharon Springs",
-      "South Gap",
-      "Stowersville",
-      "Suiter"
-    ],
-    "contiguous_counties": [
-      {
-        "name": "Giles County",
-        "state_code": "VA",
-        "state_id": 51
-      },
-      {
-        "name": "Mercer County",
-        "state_code": "WV",
-        "state_id": 54
-      },
-      {
-        "name": "Pulaski County",
-        "state_code": "VA",
-        "state_id": 51
-      },
-      {
-        "name": "Smyth County",
-        "state_code": "VA",
-        "state_id": 51
-      },
-      {
-        "name": "Tazewell County",
-        "state_code": "VA",
-        "state_id": 51
-      },
-      {
-        "name": "Wythe County",
-        "state_code": "VA",
-        "state_id": 51
-      }
-    ]
-  },
-  "broker": {
-    "name": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-    "company": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-    "phone": "(276) 262-4013",
-    "phones": {
-      "preferred": "(276) 262-4013",
-      "office": "(276) 500-0032",
-      "cell": "(276) 500-0032",
-      "fax": "(276) 228-8883",
-      "tracking_for_account": "(276) 242-2938",
-      "tracking_for_listing": "(276) 262-4013",
-      "associated_account_id": 9722,
-      "associated_listing_id": 23745464
-    },
-    "profile_url": "https://www.landwatch.com/profile/berkshire-hathaway-homeservices-mountain-sky-properties/9722",
-    "website": "www.bhhsmountainsky.com",
-    "city": "Wytheville",
-    "state": "VA",
-    "state_code": "VA",
-    "postal_code": "24382",
-    "account_id": 9722,
-    "account_type": 40,
-    "account_subtype_id": 4,
-    "active": true,
-    "alc_certified": false,
-    "alc_advanced_certified": false,
-    "is_seller": true,
-    "expiration_date": "2027-03-05T00:00:00",
-    "created_at": "2007-08-09T15:56:42.037",
-    "portrait_document_id": 5550799688,
-    "logo_document_id": 5550799693,
-    "sms_notifications": false
-  },
-  "listing": {
-    "listing_id": 23745464,
-    "listing_date": "2025-06-04",
-    "status": 1,
-    "level": 30,
-    "level_title": "Signature Partner",
-    "upgrade_level_id": 0,
-    "market_status": 1,
-    "parcel_id": "0|2822|74-A-10A|1",
-    "external_url": "https://keithgore.livesouthwestvirginia.com/property/305-99072-4149-ne-suiter-rd-VA-24314",
-    "created_at": "2025-06-04T06:37:03.26",
-    "updated_at": "December 15, 2025 at 8:53 AM",
-    "auction": {
-      "is_online_only": false
+    "maxItems": 1000,
+    "flattenOutput": false,
+    "fetchSellerAgentDetails": false,
+    "monitoringMode": false,
+    "maxConcurrency": 10,
+    "minConcurrency": 1,
+    "maxRequestRetries": 100,
+    "proxy": {
+        "useApifyProxy": true,
+        "apifyProxyGroups": ["RESIDENTIAL"]
     }
-  },
-  "listing_flags": {
-    "is_alc": false,
-    "is_courtesy": false,
-    "is_diamond": false,
-    "is_first_free_listing": false,
-    "is_gold": false,
-    "is_liked": false,
-    "is_platinum": false,
-    "is_showcase": false
-  },
-  "features": {
-    "has_custom_map": true,
-    "has_exterior_matterport": false,
-    "has_video": false,
-    "has_virtual_tour": true,
-    "amenities": [
-      "Siding",
-      "Ceiling Fans",
-      "Forced Air",
-      "Covered Porch(es)",
-      "Storage Building",
-      "Gas Logs",
-      "Carpet",
-      "Vinyl",
-      "Wood Floor",
-      "Ramp",
-      "Central Air-Elec",
-      "Central Heat- Elec",
-      "Propane",
-      "None",
-      "Stain Glass Windows",
-      "Vaulted Ceilings",
-      "Built in Refrigerator/Freezer",
-      "Dishwasher",
-      "Granite/Granite Type Cntrtop",
-      "Island",
-      "Propane Gas",
-      "No",
-      "Fire/Smoke",
-      "Library/Study",
-      "Traditional",
-      "Hunting",
-      "Mountain",
-      "Rural",
-      "Acreage",
-      "Creek",
-      "Horses Permitted",
-      "Pasture",
-      "Some Trees",
-      "Waterfront/Riverfront",
-      "Hobby Farm",
-      "Homestead",
-      "Residential Single",
-      "Farm/Ranch",
-      "Single Family",
-      "Agriculture",
-      "Asphalt",
-      "Hilly",
-      "Rolling",
-      "Sloped",
-      "Varied"
-    ],
-    "amenity_groups": [
-      {
-        "name": "Housing",
-        "categories": [
-          {
-            "name": "Construction",
-            "amenities": [
-              "Siding"
-            ]
-          },
-          {
-            "name": "Energy Efficiency",
-            "amenities": [
-              "Ceiling Fans",
-              "Forced Air"
-            ]
-          },
-          {
-            "name": "Exterior Features",
-            "amenities": [
-              "Covered Porch(es)",
-              "Storage Building"
-            ]
-          },
-          {
-            "name": "Fireplace Type",
-            "amenities": [
-              "Gas Logs"
-            ]
-          },
-          {
-            "name": "Flooring",
-            "amenities": [
-              "Carpet",
-              "Vinyl",
-              "Wood Floor"
-            ]
-          },
-          {
-            "name": "Handicap Amenities",
-            "amenities": [
-              "Ramp"
-            ]
-          },
-          {
-            "name": "Heating/Cooling",
-            "amenities": [
-              "Central Air-Elec",
-              "Central Heat- Elec",
-              "Forced Air",
-              "Propane"
-            ]
-          },
-          {
-            "name": "HOA",
-            "amenities": [
-              "None"
-            ]
-          },
-          {
-            "name": "Interior Features",
-            "amenities": [
-              "Stain Glass Windows",
-              "Vaulted Ceilings"
-            ]
-          },
-          {
-            "name": "Kitchen Equipment",
-            "amenities": [
-              "Built in Refrigerator/Freezer",
-              "Dishwasher"
-            ]
-          },
-          {
-            "name": "Kitchen Other",
-            "amenities": [
-              "Granite/Granite Type Cntrtop",
-              "Island"
-            ]
-          },
-          {
-            "name": "Other Utilities",
-            "amenities": [
-              "Propane Gas"
-            ]
-          },
-          {
-            "name": "Pool",
-            "amenities": [
-              "No"
-            ]
-          },
-          {
-            "name": "Security/Alarm Type",
-            "amenities": [
-              "Fire/Smoke"
-            ]
-          },
-          {
-            "name": "Specialty Rooms",
-            "amenities": [
-              "Library/Study"
-            ]
-          },
-          {
-            "name": "Style of House",
-            "amenities": [
-              "Traditional"
-            ]
-          }
-        ]
-      },
-      {
-        "name": "Land",
-        "categories": [
-          {
-            "name": "Activities",
-            "amenities": [
-              "Hunting"
-            ]
-          },
-          {
-            "name": "Geography",
-            "amenities": [
-              "Mountain",
-              "Rural"
-            ]
-          },
-          {
-            "name": "Lot Description",
-            "amenities": [
-              "Acreage",
-              "Creek",
-              "Horses Permitted",
-              "Pasture",
-              "Some Trees",
-              "Waterfront/Riverfront"
-            ]
-          },
-          {
-            "name": "Present Use",
-            "amenities": [
-              "Hobby Farm",
-              "Homestead",
-              "Residential Single"
-            ]
-          },
-          {
-            "name": "Property Type",
-            "amenities": [
-              "Farm/Ranch",
-              "Single Family"
-            ]
-          },
-          {
-            "name": "Proposed Use",
-            "amenities": [
-              "Agriculture",
-              "Hobby Farm",
-              "Homestead",
-              "Residential Single"
-            ]
-          },
-          {
-            "name": "Street/Utilities",
-            "amenities": [
-              "Asphalt"
-            ]
-          },
-          {
-            "name": "Topography",
-            "amenities": [
-              "Hilly",
-              "Rolling",
-              "Sloped",
-              "Varied"
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "media": {
-    "thumbnail_url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603300",
-    "thumbnail_document_id": "5553603300",
-    "main_photo_document_id": "5553603300",
-    "image_count": 17,
-    "image_alt_text": "Land for sale in Bland County, Virginia",
-    "image_document_ids": [
-      5553603300,
-      5553603303,
-      5553603306,
-      5553603308,
-      5553603309,
-      5553603310,
-      5553603312,
-      5553603313,
-      5553603314,
-      5553603315,
-      5553603316,
-      5553603317,
-      5553603319,
-      5553603320,
-      5553603325,
-      5553603330,
-      5553603335
-    ],
-    "images": [
-      {
-        "document_id": 5553603300,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603300",
-        "image_id": 1026104839,
-        "label": "bastian-1",
-        "width": 2515,
-        "height": 1677
-      },
-      {
-        "document_id": 5553603303,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603303",
-        "image_id": 1026104842,
-        "label": "bastian-4",
-        "width": 4024,
-        "height": 3018
-      },
-      {
-        "document_id": 5553603306,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603306",
-        "image_id": 1026104845,
-        "label": "bastian-17",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603308,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603308",
-        "image_id": 1026104847,
-        "label": "bastian-32",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603309,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603309",
-        "image_id": 1026104848,
-        "label": "bastian-24",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603310,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603310",
-        "image_id": 1026104850,
-        "label": "bastian-38",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603312,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603312",
-        "image_id": 1026104851,
-        "label": "bastian-41",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603313,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603313",
-        "image_id": 1026104852,
-        "label": "bastian-46",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603314,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603314",
-        "image_id": 1026104853,
-        "label": "bastian-55",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603315,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603315",
-        "image_id": 1026104854,
-        "label": "bastian-57",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603316,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603316",
-        "image_id": 1026104855,
-        "label": "bastian-62",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603317,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603317",
-        "image_id": 1026104856,
-        "label": "bastian-65",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603319,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603319",
-        "image_id": 1026104858,
-        "label": "bastian-70",
-        "width": 3015,
-        "height": 2010
-      },
-      {
-        "document_id": 5553603320,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603320",
-        "image_id": 1026104859,
-        "label": "bastian-100",
-        "width": 3012,
-        "height": 2008
-      },
-      {
-        "document_id": 5553603325,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603325",
-        "image_id": 1026104864,
-        "label": "bastian-103",
-        "width": 3006,
-        "height": 2004
-      },
-      {
-        "document_id": 5553603330,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603330",
-        "image_id": 1026104869,
-        "label": "bastian-147",
-        "width": 4024,
-        "height": 3018
-      },
-      {
-        "document_id": 5553603335,
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5553603335",
-        "image_id": 1026104874,
-        "label": "bastian-127",
-        "width": 4024,
-        "height": 3018
-      }
-    ],
-    "third_party_map_url": "id.land/ranching/maps/c4b9543dbaf834894cdd4ed46cc9c87b/embed/unbranded/",
-    "matterport_virtual_tour": {
-      "mediaTypeId": 2,
-      "mediaId": "kRYypYjbyWq",
-      "mediaUrl": "https://my.matterport.com/show/?m=kRYypYjbyWq",
-      "mediaThumbnail": "https://my.matterport.com/api/v2/player/models/kRYypYjbyWq/thumb/",
-      "mediaType": "Virtual Tour",
-      "documentType": 90
-    },
-    "attachments": [
-      {
-        "caption": "4149_suiter_road_bastian_va_24314-3d.pdf",
-        "docsPath": "/documents/5553603390/4149_suiter_road_bastian_va_24314-3d.pdf",
-        "documentId": 5553603390,
-        "documentTypeId": 20,
-        "filename": "4149_suiter_road_bastian_va_24314-3d.pdf",
-        "isExternal": false,
-        "uploadedAccountFileId": 0,
-        "uploadedPropertyFileId": 2715184,
-        "url": "https://www.landwatch.com/api/documents/5553603390/4149_suiter_road_bastian_va_24314-3d.pdf"
-      },
-      {
-        "caption": "4149_suiter_road_bastian_va_24314-2d.pdf",
-        "docsPath": "/documents/5553603391/4149_suiter_road_bastian_va_24314-2d.pdf",
-        "documentId": 5553603391,
-        "documentTypeId": 20,
-        "filename": "4149_suiter_road_bastian_va_24314-2d.pdf",
-        "isExternal": false,
-        "uploadedAccountFileId": 0,
-        "uploadedPropertyFileId": 2715185,
-        "url": "https://www.landwatch.com/api/documents/5553603391/4149_suiter_road_bastian_va_24314-2d.pdf"
-      },
-      {
-        "caption": "4149 Suiter Rd - Aerial.pdf",
-        "docsPath": "/documents/5553603392/4149SuiterRd-Aerial.pdf",
-        "documentId": 5553603392,
-        "documentTypeId": 20,
-        "filename": "4149 Suiter Rd - Aerial.pdf",
-        "isExternal": false,
-        "uploadedAccountFileId": 0,
-        "uploadedPropertyFileId": 2715186,
-        "url": "https://www.landwatch.com/api/documents/5553603392/4149SuiterRd-Aerial.pdf"
-      },
-      {
-        "caption": "Deed Laban.pdf",
-        "docsPath": "/documents/5553603431/DeedLaban.pdf",
-        "documentId": 5553603431,
-        "documentTypeId": 20,
-        "filename": "Deed Laban.pdf",
-        "isExternal": false,
-        "uploadedAccountFileId": 0,
-        "uploadedPropertyFileId": 2715188,
-        "url": "https://www.landwatch.com/api/documents/5553603431/DeedLaban.pdf"
-      },
-      {
-        "caption": "summary of rights-2.pdf",
-        "docsPath": "/documents/5553603543/summaryofrights-2.pdf",
-        "documentId": 5553603543,
-        "documentTypeId": 20,
-        "filename": "summary of rights-2.pdf",
-        "isExternal": false,
-        "uploadedAccountFileId": 0,
-        "uploadedPropertyFileId": 2715189,
-        "url": "https://www.landwatch.com/api/documents/5553603543/summaryofrights-2.pdf"
-      },
-      {
-        "caption": "Survey Laban.pdf",
-        "docsPath": "/documents/5553603544/SurveyLaban.pdf",
-        "documentId": 5553603544,
-        "documentTypeId": 20,
-        "filename": "Survey Laban.pdf",
-        "isExternal": false,
-        "uploadedAccountFileId": 0,
-        "uploadedPropertyFileId": 2715190,
-        "url": "https://www.landwatch.com/api/documents/5553603544/SurveyLaban.pdf"
-      }
-    ]
-  },
-  "history": {
-    "events": [
-      {
-        "date": "2025-12-15T00:00:00",
-        "price": 605000,
-        "price_delta": -5.32,
-        "acres": 47.83,
-        "acres_delta": 0,
-        "event_title": "Price"
-      },
-      {
-        "date": "2025-07-30T00:00:00",
-        "price": 639000,
-        "price_delta": -5.33,
-        "acres": 47.83,
-        "acres_delta": 0,
-        "event_title": "Price"
-      },
-      {
-        "date": "2025-06-04T00:00:00",
-        "price": 675000,
-        "acres": 47.83,
-        "event_title": "Listed for Sale"
-      }
-    ]
-  },
-  "map": {
-    "static_map_url": "https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyCvtvmtxTW9V3N4SW7-QvFPV5k1O6pmkds&channel=land&size=100x100&maptype=roadmap&center=37.116016%2c-81.211655&markers=color:blue%7C37.116016%2c-81.211655&zoom=10&signature=hQqB4e1IEWToNYoYN7_bhboJ_Bo=",
-    "overlays": [
-      {
-        "id": 166457936,
-        "property_id": 23745464,
-        "uuid": "7A185B7B-D3FB-49ED-851E-22317DA236B3",
-        "name": "Custom Land Default Marker",
-        "geometry": "37.116016,-81.211655",
-        "main_parcel": false,
-        "overlay_type_id": 1,
-        "type": "custom"
-      }
-    ]
-  },
-  "source_schemas": {
-    "schema_data": {
-      "@context": "http://schema.org",
-      "@type": "SingleFamilyResidence",
-      "name": "4149 Suiter Rd, Bastian, VA, 24314",
-      "description": "This is a must see home. It has everything from a 24 foot vaulted ceiling to your own private librar",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "4149 Suiter Rd",
-        "addressLocality": "Bastian",
-        "addressRegion": "VA",
-        "postalCode": "24314"
-      }
-    },
-    "breadcrumb": {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "item": {
-            "@id": "https://www.landwatch.com",
-            "name": "Home"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "item": {
-            "@id": "https://www.landwatch.com/land",
-            "name": "United States Land for Sale"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "item": {
-            "@id": "https://www.landwatch.com/virginia-land-for-sale",
-            "name": "Virginia Land for Sale"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 4,
-          "item": {
-            "@id": "https://www.landwatch.com/virginia-land-for-sale/mountain-region",
-            "name": "Mountain Virginia Land for Sale"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 5,
-          "item": {
-            "@id": "https://www.landwatch.com/virginia-land-for-sale/bland-county",
-            "name": "Bland County Virginia Land for Sale"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 6,
-          "item": {
-            "@id": "https://www.landwatch.com/virginia-land-for-sale/bastian",
-            "name": "Bastian Virginia Land for Sale"
-          }
-        },
-        {
-          "@type": "ListItem",
-          "position": 7,
-          "item": {
-            "@id": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960",
-            "name": "47.83 Acres - Bastian Virginia Land for Sale"
-          }
-        }
-      ]
-    },
-    "listing": {
-      "@context": "https://schema.org",
-      "@type": [
-        "RealEstateListing",
-        "Product"
-      ],
-      "url": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960",
-      "@id": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960#listingdetailpage",
-      "description": "This is a must see home. It has everything from a 24 foot vaulted ceiling to your own private library. This home has some beautifully designed stain glass windows which allows radiant sunlight into the home. You will enjoy the view of the valley from your wrap around porch. For anyone who enjoys the outdoors and nature this property joins the National Forest. There is a metal building for projects and also a pole barn for horses or cattle. The property boarders Hunting Camp Creek. You will have to see this property to appreciate all that it has to offer.",
-      "datePosted": "2025-06-04",
-      "image": {
-        "@type": "ImageObject",
-        "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/1-5553603300"
-      },
-      "name": "Bastian, Bland County, VA Farms and Ranches, House for sale Property ID: 423149960",
-      "lastReviewed": "December 15, 2025 at 8:53 AM",
-      "mainEntity": {
-        "@type": "Residence",
-        "@id": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960#residence",
-        "name": "Bastian, Bland County, VA Farms and Ranches, House for sale Property ID: 423149960",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "4149 Suiter Rd",
-          "addressLocality": "Bastian",
-          "addressRegion": "VA",
-          "postalCode": "24314",
-          "addressCountry": "US"
-        },
-        "image": {
-          "@type": "ImageObject",
-          "url": "https://assets.landwatch.com/resizedimages/394/0/h/80/1-5553603300"
-        },
-        "additionalProperty": [
-          {
-            "@type": "PropertyValue",
-            "name": "Acreage",
-            "value": "47.83 acres"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Construction",
-            "value": "Siding"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Energy Efficiency",
-            "value": [
-              "Ceiling Fans",
-              "Forced Air"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Exterior Features",
-            "value": [
-              "Covered Porch(es)",
-              "Storage Building"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Fireplace Type",
-            "value": "Gas Logs"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Flooring",
-            "value": [
-              "Carpet",
-              "Vinyl",
-              "Wood Floor"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Handicap Amenities",
-            "value": "Ramp"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Heating/Cooling",
-            "value": [
-              "Central Air-Elec",
-              "Central Heat- Elec",
-              "Forced Air",
-              "Propane"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "HOA",
-            "value": "None"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Interior Features",
-            "value": [
-              "Stain Glass Windows",
-              "Vaulted Ceilings"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Kitchen Equipment",
-            "value": [
-              "Built in Refrigerator/Freezer",
-              "Dishwasher"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Kitchen Other",
-            "value": [
-              "Granite/Granite Type Cntrtop",
-              "Island"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Other Utilities",
-            "value": "Propane Gas"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Pool",
-            "value": "No"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Security/Alarm Type",
-            "value": "Fire/Smoke"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Specialty Rooms",
-            "value": "Library/Study"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Style of House",
-            "value": "Traditional"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Activities",
-            "value": "Hunting"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Geography",
-            "value": [
-              "Mountain",
-              "Rural"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Lot Description",
-            "value": [
-              "Acreage",
-              "Creek",
-              "Horses Permitted",
-              "Pasture",
-              "Some Trees",
-              "Waterfront/Riverfront"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Present Use",
-            "value": [
-              "Hobby Farm",
-              "Homestead",
-              "Residential Single"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Property Type",
-            "value": [
-              "Farm/Ranch",
-              "Single Family"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Proposed Use",
-            "value": [
-              "Agriculture",
-              "Hobby Farm",
-              "Homestead",
-              "Residential Single"
-            ]
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Street/Utilities",
-            "value": "Asphalt"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Topography",
-            "value": [
-              "Hilly",
-              "Rolling",
-              "Sloped",
-              "Varied"
-            ]
-          }
-        ]
-      },
-      "offers": {
-        "@type": "Offer",
-        "@id": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960#offer",
-        "price": 605000,
-        "priceCurrency": "USD",
-        "availability": "https://schema.org/InStock",
-        "itemOffered": {
-          "@type": "Residence",
-          "@id": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960#residence"
-        },
-        "seller": {
-          "@type": "RealEstateAgent",
-          "@id": "https://www.landwatch.com/profile/berkshire-hathaway-homeservices-mountain-sky-properties/9722#agentbroker",
-          "name": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "url": "https://www.landwatch.com/profile/berkshire-hathaway-homeservices-mountain-sky-properties/9722",
-          "image": {
-            "@type": "ImageObject",
-            "url": "https://assets.landwatch.com/resizedimages/150/150/l/80/w/1-5550799688"
-          },
-          "telephone": "(276) 262-4013",
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "305 N. 4th Street, Suite B",
-            "addressLocality": "Wytheville",
-            "addressRegion": "VA",
-            "postalCode": "24382",
-            "addressCountry": "US"
-          },
-          "memberOf": {
-            "@type": "Organization",
-            "name": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-            "address": {
-              "@type": "PostalAddress",
-              "streetAddress": "305 N. 4th Street",
-              "addressLocality": "Wytheville",
-              "addressRegion": "VA",
-              "postalCode": "24382",
-              "addressCountry": "US"
-            }
-          },
-          "areaServed": [
-            {
-              "@type": "State",
-              "name": "Virginia"
-            }
-          ]
-        },
-        "offeredBy": {
-          "@id": "https://www.landwatch.com/profile/berkshire-hathaway-homeservices-mountain-sky-properties/9722#agentbroker"
-        }
-      }
-    },
-    "product": {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      "url": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960",
-      "image": "https://assets.landwatch.com/resizedimages/394/0/h/80/1-5553603300",
-      "name": "Bastian, Bland County, VA Farms and Ranches, House for sale Property ID: 423149960",
-      "offers": {
-        "@type": "Offer",
-        "price": 605000,
-        "priceCurrency": "USD",
-        "availability": "https://schema.org/InStock",
-        "url": "https://www.landwatch.com/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960"
-      },
-      "Brand": "LandWatch",
-      "Sku": "423149960"
-    },
-    "residence_and_geo": {
-      "@context": "https://schema.org",
-      "@type": "SingleFamilyResidence",
-      "url": "/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960",
-      "description": "This is a must see home. It has everything from a 24 foot vaulted ceiling to your own private library. This home has some beautifully designed stain glass windows which allows radiant sunlight into the home. You will enjoy the view of the valley from your wrap around porch. For anyone who enjoys the outdoors and nature this property joins the National Forest. There is a metal building for projects and also a pole barn for horses or cattle. The property boarders Hunting Camp Creek. You will have to see this property to appreciate all that it has to offer.",
-      "name": "47.83 acres in Bland County, Virginia",
-      "image": "https://assets.landwatch.com/resizedimages/394/0/h/80/1-5553603300",
-      "hasMap": "https://www.google.com/maps/place/37.116016,-81.211655",
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 37.116016,
-        "longitude": -81.211655
-      },
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "4149 Suiter Rd",
-        "addressLocality": "Bastian",
-        "addressRegion": "VA",
-        "postalCode": "24314"
-      }
-    }
-  },
-  "related_listings": {
-    "other": [
-      {
-        "id": 423166305,
-        "url": "https://www.landwatch.com/russell-county-virginia-farms-and-ranches-for-sale/pid/423166305",
-        "title": "123 Luttie Banner Rd Castlewood, VA 24224",
-        "description": "This 224 acre property will be sold for the first time since the days of Colonial America. Originally granted by the King of England to the Banner family, this land has remained in continuous ownership for over 300 years a true testament to its legac",
-        "identifiers": {
-          "source_record_id": 23761809,
-          "landwatch_property_id": 423166305,
-          "site_listing_id": 423166305,
-          "laf_property_id": 37796186,
-          "account_id": 9722
-        },
-        "pricing": {
-          "price": 2500000,
-          "price_text": "$2,500,000",
-          "short_price": "$2.5M",
-          "price_per_acre": 11160.71,
-          "price_change_amount": 0,
-          "price_change_percentage": 0
-        },
-        "property": {
-          "acres": 224,
-          "acres_text": "224 acres",
-          "types": [
-            "Farms and Ranches",
-            "Riverfront Property",
-            "Waterfront Property",
-            "House"
-          ],
-          "types_text": "Farms and Ranches, Riverfront Property, Waterfront Property, House"
-        },
-        "location": {
-          "address": "123 Luttie Banner Dr",
-          "city": "Castlewood",
-          "county": "Russell County",
-          "state": "Virginia",
-          "state_code": "VA",
-          "postal_code": "24224",
-          "coordinates": {
-            "latitude": 36.89384078979492,
-            "longitude": -82.27678680419922
-          }
-        },
-        "broker": {
-          "name": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "company": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "profile_url": "https://www.landwatch.com/profile/berkshire-hathaway-homeservices-mountain-sky-properties/9722"
-        },
-        "media": {
-          "image_count": 17,
-          "thumbnail_document_id": 5555678421,
-          "thumbnail_url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5555678421"
-        },
-        "listing": {
-          "status": 1,
-          "level": 30,
-          "level_title": "Signature Partner",
-          "updated_at": "2025-11-19T10:18:00.02"
-        }
-      },
-      {
-        "id": 425298612,
-        "url": "https://www.landwatch.com/wythe-county-virginia-farms-and-ranches-for-sale/pid/425298612",
-        "title": "4722 Ivanhoe Rd Ivanhoe, VA 24350",
-        "description": "Take a look at this charming Cottage on 3+ Acres perfect for the horse & outdoor enthusiast! Situated on over 3 acres of beautiful mixed pasture and woodlands, this inviting cottage-style home offers the perfect blend of comfort and outdoor recreatio",
-        "identifiers": {
-          "source_record_id": 25894116,
-          "landwatch_property_id": 425298612,
-          "site_listing_id": 425298612,
-          "laf_property_id": 39928493,
-          "account_id": 9722
-        },
-        "pricing": {
-          "price": 176000,
-          "price_text": "$176,000",
-          "short_price": "$176K",
-          "price_per_acre": 53658.54,
-          "price_change_amount": 0,
-          "price_change_percentage": 0
-        },
-        "property": {
-          "acres": 3.28,
-          "acres_text": "3.28 acres",
-          "types": [
-            "Farms and Ranches",
-            "House"
-          ],
-          "types_text": "Farms and Ranches, House"
-        },
-        "location": {
-          "address": "4722 Ivanhoe Rd",
-          "city": "Ivanhoe",
-          "county": "Wythe County",
-          "state": "Virginia",
-          "state_code": "VA",
-          "postal_code": "24350",
-          "coordinates": {
-            "latitude": 36.838302,
-            "longitude": -80.958545
-          }
-        },
-        "broker": {
-          "name": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "company": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "profile_url": "https://www.landwatch.com/profile/berkshire-hathaway-homeservices-mountain-sky-properties/9722"
-        },
-        "media": {
-          "image_count": 75,
-          "thumbnail_document_id": 5921674980,
-          "thumbnail_url": "https://assets.landwatch.com/resizedimages/394/0/h/80/5921674980"
-        },
-        "listing": {
-          "status": 1,
-          "level": 30,
-          "level_title": "Signature Partner",
-          "updated_at": "2026-01-09T11:53:46.263"
-        }
-      },
-      {
-        "id": 426487570,
-        "url": "https://www.landwatch.com/mecklenburg-county-virginia-farms-and-ranches-for-sale/pid/426487570",
-        "title": "2842 Goodes Ferry Rd South Hill, VA 23970",
-        "description": "Set beyond a tree-lined drive on over 20 acres of beautiful pastureland, this exceptional all-brick Colonial estate offers luxury living w/ remarkable privacy & functionality. A paved circular drive w/ flagpole & streetside lighting welcomes you to t",
-        "identifiers": {
-          "source_record_id": 27083075,
-          "landwatch_property_id": 426487570,
-          "site_listing_id": 426487570,
-          "laf_property_id": 41117451,
-          "account_id": 9722
-        },
-        "pricing": {
-          "price": 1100000,
-          "price_text": "$1,100,000",
-          "short_price": "$1.1M",
-          "price_per_acre": 52961,
-          "price_change_amount": 0,
-          "price_change_percentage": 0
-        },
-        "property": {
-          "acres": 20.77,
-          "acres_text": "20.8 acres",
-          "types": [
-            "Farms and Ranches",
-            "House"
-          ],
-          "types_text": "Farms and Ranches, House"
-        },
-        "location": {
-          "address": "2842 Goodes Ferry Road",
-          "city": "South Hill",
-          "county": "Mecklenburg County",
-          "state": "Virginia",
-          "state_code": "VA",
-          "postal_code": "23970",
-          "coordinates": {
-            "latitude": 36.69645690917969,
-            "longitude": -78.15299224853516
-          }
-        },
-        "broker": {
-          "name": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "company": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "profile_url": "https://www.landwatch.com/profile/berkshire-hathaway-homeservices-mountain-sky-properties/9722"
-        },
-        "media": {
-          "image_count": 241,
-          "thumbnail_document_id": 6140705868,
-          "thumbnail_url": "https://assets.landwatch.com/resizedimages/394/0/h/80/6140705868"
-        },
-        "listing": {
-          "status": 1,
-          "level": 30,
-          "level_title": "Signature Partner",
-          "updated_at": "2026-04-26T13:25:19.123"
-        }
-      },
-      {
-        "id": 426490158,
-        "url": "https://www.landwatch.com/grayson-county-virginia-farms-and-ranches-for-sale/pid/426490158",
-        "title": "434 Glenwood Rd. Troutdale, VA 24378",
-        "description": "This rare, turnkey property blends modern comfort with peaceful country living. The fully remodeled and furnished historic farmhouse features high-speed fiber optic internet, ideal for remote work and entertainment. A stunning spring-fed pond is stoc",
-        "identifiers": {
-          "source_record_id": 27085663,
-          "landwatch_property_id": 426490158,
-          "site_listing_id": 426490158,
-          "laf_property_id": 41120039,
-          "account_id": 9722
-        },
-        "pricing": {
-          "price": 675000,
-          "price_text": "$675,000",
-          "short_price": "$675K",
-          "price_per_acre": 56250,
-          "price_change_amount": 0,
-          "price_change_percentage": 0
-        },
-        "property": {
-          "acres": 12,
-          "acres_text": "12 acres",
-          "types": [
-            "Farms and Ranches",
-            "House"
-          ],
-          "types_text": "Farms and Ranches, House"
-        },
-        "location": {
-          "address": "434 Glenwood Road",
-          "city": "Troutdale",
-          "county": "Grayson County",
-          "state": "Virginia",
-          "state_code": "VA",
-          "postal_code": "24378",
-          "coordinates": {
-            "latitude": 36.71719741821289,
-            "longitude": -81.34957885742188
-          }
-        },
-        "broker": {
-          "name": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "company": "Berkshire Hathaway HomeServices Mountain Sky Properties",
-          "profile_url": "https://www.landwatch.com/profile/berkshire-hathaway-homeservices-mountain-sky-properties/9722"
-        },
-        "media": {
-          "image_count": 117,
-          "thumbnail_document_id": 6144160179,
-          "thumbnail_url": "https://assets.landwatch.com/resizedimages/394/0/h/80/6144160179"
-        },
-        "listing": {
-          "status": 1,
-          "level": 30,
-          "level_title": "Signature Partner",
-          "updated_at": "2026-04-26T13:25:03.77"
-        }
-      }
-    ]
-  },
-  "seo": {
-    "title": "4149 Suiter Rd, Bastian, VA 24314 | MLS: 99072 | LandWatch",
-    "description": "View 47.83 acres priced at $605,000 in Bastian, Bland County, VA. Browse photos, see details, and contact the seller."
-  },
-  "source_context": {
-    "source_url": "https://www.landwatch.com/api/property/search/1113/land/price-600001-608000",
-    "detail_api_url": "https://www.landwatch.com/api/property/423149960",
-    "seed_id": "3d56106dbde3",
-    "seed_type": "url",
-    "seed_value": "https://www.landwatch.com/api/property/search/1113/land",
-    "page_index": 0,
-    "domain": "www.landwatch.com",
-    "breadcrumbs": [
-      {
-        "path": "/",
-        "location_text": "Home"
-      },
-      {
-        "path": "/land",
-        "location_text": "United States"
-      },
-      {
-        "path": "/virginia-land-for-sale",
-        "location_text": "Virginia"
-      },
-      {
-        "path": "/virginia-land-for-sale/mountain-region",
-        "location_text": "Mountain Virginia"
-      },
-      {
-        "path": "/virginia-land-for-sale/bland-county",
-        "location_text": "Bland County"
-      },
-      {
-        "path": "/virginia-land-for-sale/bastian",
-        "location_text": "Bastian"
-      },
-      {
-        "path": "/bland-county-virginia-farms-and-ranches-for-sale/pid/423149960",
-        "location_text": "47.83 Acres - Bastian Virginia"
-      }
-    ],
-    "finance_center": {
-      "active": true,
-      "checkbox_default_state": false,
-      "checkbox_label": "Click here to learn more about financing this property with Farm Credit of the Virginias",
-      "finance_id": 40,
-      "logo_document_id": "5209604069",
-      "logo_url_part": "40.jpg",
-      "map_trackable_link": "https://www.land.com/financing/?fcid=40",
-      "min_acres": 0,
-      "min_price": 0,
-      "name": "Farm Credit of the Virginias",
-      "query_string": "state=VA",
-      "show_on_laf": true,
-      "show_on_loa": true,
-      "show_on_lw": true,
-      "url_part": "FarmCreditVirginias"
-    }
-  },
-  "fingerprint": "903031fcb395f6b08ebd"
 }
 ```
 
-## Field Reference
-
-### LandWatch listing record
-
-**id** *(integer, required)*: LandWatch property identifier and recommended primary idempotency key.
-
-**url** *(string, required)*: Public listing URL.
-
-**title** *(string, required)*: Listing title or address-style display title.
-
-**description** *(string, optional)*: Public listing description.
-
-**identifiers.landwatch_property_id / site_listing_id / listing_id / source_record_id / laf_property_id** *(integer, optional)*: Source listing and property identifiers useful for matching records.
-
-**identifiers.account_id / account_type / site_id / parent_account_id / partner_id** *(integer, optional)*: Public account and site identifiers when available.
-
-**identifiers.parcel_id / mls_id** *(string, optional)*: Parcel and MLS identifiers when supplied by the listing.
-
-**pricing.price / sales_price** *(number, optional)*: Listing price and sales price in USD when available.
-
-**pricing.price_text / short_price** *(string, optional)*: Human-readable price labels.
-
-**pricing.price_per_acre** *(number, optional)*: Price per acre in USD.
-
-**pricing.price_change_amount / price_change_text / price_change_date / price_change_percentage** *(number or string, optional)*: Recent price-change values when provided.
-
-**property.acres / acres_text** *(number or string, optional)*: Parcel acreage.
-
-**property.beds / beds_text / baths / baths_text / half_baths** *(number or string, optional)*: Residential bedroom and bathroom attributes.
-
-**property.home_sqft / home_sqft_text** *(number or string, optional)*: Building size in square feet.
-
-**property.types / types_text / type_code / type_ids / ad_targeting_property_type** *(array, string, or number, optional)*: Property category labels and category identifiers.
-
-**property.has_house / is_residence / is_irrigated / is_listhub_listing / can_display / should_redirect_detail_page** *(boolean, optional)*: Listing-level property flags.
-
-**property.link_infos[].label / url** *(string, optional)*: Public category links related to the listing.
-
-**location.address / city / county / state / state_code / postal_code / region** *(string, optional)*: Postal and regional location fields.
-
-**location.city_id / county_id / county_fips / county_laf_id / state_id / region_id / ad_targeting_county_id** *(integer, optional)*: Location identifiers when available.
-
-**location.city_url / county_url / county_label** *(string, optional)*: Public location links and labels.
-
-**location.state_tax_rate / geocode_accuracy** *(number, optional)*: Region-level tax and geocoding indicators when available.
-
-**location.coordinates.latitude / longitude** *(number, optional)*: Listing coordinates.
-
-**location.cities_in_county[]** *(array of strings, optional)*: Public city names associated with the county.
-
-**location.contiguous_counties[].name / state_code / state_id** *(string or integer, optional)*: Nearby county references.
-
-**broker.name / company / phone / profile_url / website / city / state / state_code / postal_code** *(string, optional)*: Broker or company contact and profile fields.
-
-**broker.phones.preferred / office / cell / fax / tracking_for_account / tracking_for_listing** *(string, optional)*: Phone values exposed for the listing or account.
-
-**broker.phones.associated_account_id / associated_listing_id** *(integer, optional)*: Broker phone association identifiers.
-
-**broker.account_id / account_type / account_subtype_id** *(integer, optional)*: Broker account identifiers when available.
-
-**broker.active / alc_certified / alc_advanced_certified / is_seller / sms_notifications** *(boolean, optional)*: Broker account flags.
-
-**broker.expiration_date / created_at** *(string, optional)*: Public account lifecycle timestamps when available.
-
-**broker.portrait_document_id / logo_document_id** *(integer, optional)*: Media document identifiers for broker profile assets.
-
-**listing.listing_id / status / level / upgrade_level_id / market_status** *(integer, optional)*: Listing status and placement metadata.
-
-**listing.listing_date / created_at / updated_at / external_url / parcel_id** *(string, optional)*: Listing dates, update label, public external link, and parcel identifier.
-
-**listing.auction.is_online_only** *(boolean, optional)*: Auction-specific listing flag when applicable.
-
-**listing_flags.is_alc / is_courtesy / is_diamond / is_first_free_listing / is_gold / is_liked / is_platinum / is_showcase** *(boolean, optional)*: Public listing badge and placement flags.
-
-**features.has_custom_map / has_exterior_matterport / has_video / has_virtual_tour** *(boolean, optional)*: Media and feature availability flags.
-
-**features.amenities[]** *(array of strings, optional)*: Listing amenity labels.
-
-**features.amenity_groups[].name** *(string, optional)*: Amenity group name.
-
-**features.amenity_groups[].categories[].name / amenities[]** *(string or array, optional)*: Amenity category names and values.
-
-**media.thumbnail_url / thumbnail_document_id / main_photo_document_id / image_alt_text / third_party_map_url** *(string, optional)*: Primary media references.
-
-**media.image_count** *(integer, optional)*: Number of images reported for the listing.
-
-**media.image_document_ids[]** *(array of integers, optional)*: Image document identifiers.
-
-**media.images[].document_id / url / image_id / label / width / height** *(string or number, optional)*: Detailed image records.
-
-**media.matterport_virtual_tour.mediaTypeId / mediaId / mediaUrl / mediaThumbnail / mediaType / documentType** *(string or number, optional)*: Virtual tour metadata when present.
-
-**media.attachments[].caption / docsPath / documentId / documentTypeId / filename / isExternal / uploadedAccountFileId / uploadedPropertyFileId / url** *(string, number, or boolean, optional)*: Public attachment metadata.
-
-**history.events[].date / price / price_delta / acres / acres_delta / event_title** *(string or number, optional)*: Listing history events such as listing and price changes.
-
-**map.static_map_url** *(string, optional)*: Static map image URL when available.
-
-**map.overlays[].id / property_id / uuid / name / geometry / main_parcel / overlay_type_id / type** *(string, number, or boolean, optional)*: Map overlay metadata.
-
-**source_schemas.schema_data** *(object, optional)*: Structured listing metadata exposed by the source page.
-
-**source_schemas.schema_data.address.streetAddress / addressLocality / addressRegion / postalCode** *(string, optional)*: Postal address fields in source schema data.
-
-**source_schemas.breadcrumb.itemListElement[]** *(array, optional)*: Breadcrumb schema entries with position, item identifier, and display name.
-
-**source_schemas.listing** *(object, optional)*: Source-provided real estate listing schema, including description, date, image, residence, offer, seller, and area-served values.
-
-**source_schemas.product** *(object, optional)*: Source-provided product schema with URL, image, name, offer, brand, and SKU.
-
-**source_schemas.residence_and_geo** *(object, optional)*: Source-provided residence and geolocation schema.
-
-**related_listings.other[]** *(array, optional)*: Related listing summaries when available.
-
-**related_listings.other[].id / url / title / description** *(string or integer, optional)*: Related listing identity and summary fields.
-
-**related_listings.other[].identifiers** *(object, optional)*: Related listing identifiers.
-
-**related_listings.other[].pricing** *(object, optional)*: Related listing price, price text, short price, price per acre, and price-change values.
-
-**related_listings.other[].property** *(object, optional)*: Related listing acreage and property type values.
-
-**related_listings.other[].location** *(object, optional)*: Related listing address, city, county, state, postal code, and coordinates.
-
-**related_listings.other[].broker** *(object, optional)*: Related listing broker name, company, and profile URL.
-
-**related_listings.other[].media** *(object, optional)*: Related listing image count, thumbnail document identifier, and thumbnail URL.
-
-**related_listings.other[].listing** *(object, optional)*: Related listing status, level, level title, and update timestamp.
-
-**seo.title / description** *(string, optional)*: Public SEO title and description associated with the listing.
-
-**source_context.source_url / detail_api_url / seed_id / seed_type / seed_value / domain** *(string, optional)*: Source-context values included with the record when available.
-
-**source_context.page_index** *(integer, optional)*: Page index associated with the collected record.
-
-**source_context.breadcrumbs[].path / location_text** *(string, optional)*: Breadcrumb context for the record.
-
-**source_context.finance_center.active / checkbox_default_state / show_on_laf / show_on_loa / show_on_lw** *(boolean, optional)*: Finance-center visibility flags when present.
-
-**source_context.finance_center.checkbox_label / logo_document_id / logo_url_part / map_trackable_link / name / query_string / url_part** *(string, optional)*: Finance-center labels and public references.
-
-**source_context.finance_center.finance_id / min_acres / min_price** *(number, optional)*: Finance-center numeric values.
-
-**fingerprint** *(string, optional)*: Compact stable fingerprint useful for change detection across repeated runs.
-
-## Data Quality, Guarantees, And Handling
-
-- **Structured records:** results are normalized into predictable JSON objects for downstream use.
-- **Best-effort extraction:** fields may vary by region, session, availability, account visibility, listing type, source data quality, or UI experiments.
-- **Optional fields:** null-check optional values in downstream code, especially broker, media, feature, history, schema, and related-listing fields.
-- **Deduplication:** use `id` as the strongest stable key available from the output, with `url` and `fingerprint` as secondary checks.
-- **Freshness:** results reflect the publicly available data at run time.
-- **Repeated runs:** use the recommended idempotency key when syncing data into warehouses, CRMs, or search indexes.
-
-## Tips For Best Results
-
-- Start with a small `limit` to validate the output shape before scaling up.
-- Use one geography, property category, or market segment per run when you need cleaner segmentation.
-- Leave optional filters empty when the goal is broad discovery.
-- Add filters gradually to understand how each field changes coverage.
-- Use `publication_date`, `price_reduction_period`, and `sort_by` for monitoring newly published or recently changed listings.
-- Schedule recurring runs for monitoring workflows instead of relying on manual one-off collection.
-- Store records by `id` and compare `fingerprint` when tracking changes over time.
-
-## How to Run on Apify
-
-1. Open the Actor in Apify Console.
-2. Configure the available input fields for the target scope.
-3. Set the maximum number of outputs to collect with `limit`.
-4. Click **Start** and wait for the run to finish.
-5. Inspect the dataset preview.
-6. Download results in JSON, CSV, Excel, or another supported format.
-
-## Scheduling & Automation
-
-### Scheduling
-
-**Automated Data Collection**
-
-Schedule recurring runs to keep LandWatch listing datasets fresh for monitoring, reporting, and enrichment workflows. Use the same validated input configuration for consistent collection over time.
-
-- Navigate to **Schedules** in Apify Console
-- Create a new schedule, such as daily, weekly, or custom cron
-- Configure input parameters
-- Enable notifications for run completion
-- Add webhooks for automated processing
-
-### Integration Options
-
-- **CRM enrichment:** sync public listing, broker, location, acreage, and pricing attributes into account or lead records.
-- **BI dashboards:** monitor pricing, availability, property-type movement, acreage bands, and geographic coverage over time.
-- **Data warehouses:** retain historical listing snapshots for market intelligence, trend analysis, and operational reporting.
-- **Webhooks:** trigger validation, notification, or ingestion workflows after each completed run.
-- **Google Sheets or Airtable:** review smaller datasets, qualify leads, and coordinate lightweight market research workflows.
-- **Alerts:** notify teams when new, recently changed, or price-reduced listings match a saved scope.
-
-## Export Formats And Downstream Use
-
-Apify datasets can be exported or consumed by downstream systems for analysis, review, and operational use.
-
-- **JSON:** for APIs, applications, and data pipelines
-- **CSV or Excel:** for spreadsheet workflows and manual review
-- **API access:** for automated ingestion into internal systems
-- **BI and warehouses:** for reporting, dashboards, and historical analysis
-
-## Performance
-
-Estimated run times:
-
-- **Small runs (< 1,000 outputs):** ~3-5 minutes
-- **Medium runs (1,000-5,000 outputs):** ~5-15 minutes
-- **Large runs (5,000+ outputs):** ~15-30 minutes
-
-Execution time varies based on filters, result volume, and how much information is returned per record. Highly filtered runs can finish faster, while broad discovery or detail-rich records may take longer.
-
-## Limitations
-
-- Availability depends on what [LandWatch](https://www.landwatch.com) publicly exposes at run time.
-- Some optional fields may be missing on sparse listings, regional pages, older records, or records with limited broker or media information.
-- Very broad searches may take longer or require higher limits to collect the desired volume.
-- Target-side changes can affect field availability, labels, or naming.
-- Regional, account, or availability differences may change which records are visible for the same input scope.
-- Listing freshness reflects the public source state at the time the actor runs.
-
-## Troubleshooting
-
-- **No results returned:** check filters, location or category spelling, and whether LandWatch has matching public records for the selected scope.
-- **Fewer results than expected:** broaden filters, raise `limit`, or verify that the target contains enough matching records.
-- **Some fields are empty:** optional fields depend on what each record publicly provides.
-- **Run takes longer than expected:** reduce scope, lower `limit` for validation, or split broad collection into smaller segments.
-- **Output changed:** compare the current output with the field reference and report a small sample if support is needed.
-
-## FAQ
-
-### What data does this actor collect?
-
-It collects public LandWatch listing records, including listing identity, URLs, descriptions, pricing, acreage, property details, location, broker details, media, amenities, listing history, related listings, SEO metadata, and stable identifiers when available.
-
-### Can I filter by location, category, date, price, or other criteria?
-
-Yes. The input schema supports `location`, `property_type`, `publication_date`, `price_reduction_period`, keyword search, feature flags, price range, parcel size, building size, bedroom and bathroom counts, availability, deal type, and sorting.
-
-### Why did I receive fewer results than my limit?
-
-`limit` is a maximum, not a guarantee. The final count depends on how many public listings match the configured scope and filters at run time.
-
-### Can I schedule recurring runs?
-
-Yes. Use Apify schedules to run the actor daily, weekly, or with a custom cron expression for monitoring and reporting workflows.
-
-### How do I avoid duplicates across runs?
-
-Use `id` as the primary idempotency key. You can also compare `url` and `fingerprint` when detecting changes or validating repeated runs.
-
-### Can I export the data to CSV, Excel, or JSON?
-
-Yes. Apify datasets support exports such as JSON, CSV, Excel, and other platform-supported formats.
-
-### Does this actor collect private data?
-
-No. The actor is intended to collect publicly available listing information from LandWatch. Users are responsible for using the data lawfully and appropriately.
-
-### What should I include when reporting an issue?
-
-Include the input used with sensitive values removed, the run ID, expected versus actual behavior, and a small output sample if it helps illustrate the problem.
-
-## Compliance & Ethics
-
-### Responsible Data Collection
-
-This actor collects publicly available real estate listing information from **[https://www.landwatch.com](https://www.landwatch.com)** for legitimate business purposes, including:
-
-- **Real estate and land market** research and market analysis
-- **Lead qualification and enrichment** for public property and broker records
-- **Inventory monitoring and reporting** for pricing, availability, and regional trends
-
-This section is informational and not legal advice. Users are responsible for ensuring that their collection, storage, and use of data comply with applicable laws, regulations, and contractual obligations.
-
-### Best Practices
-
-- Use collected data in accordance with applicable laws, regulations, and the target site’s terms
-- Respect individual privacy and personal information
-- Use data responsibly and avoid disruptive or excessive collection
-- Do not use this actor for spamming, harassment, or other harmful purposes
-- Follow relevant data protection requirements where applicable, such as GDPR and CCPA
+### Input Fields Explanation
+
+- `startUrls`: Array of LandWatch URLs. Mix any of the supported types — land listings, find-agent, individual `/pid/...`, individual `/profile/...`. See Supported URLs.
+- `maxItems`: Maximum number of items to scrape (default: 1000).
+- `flattenOutput`: When `true`, dataset records are flattened — listing-card fields (`price`, `address`, `brokerName`, etc.) and convenience fields (`url`, `description`, `imageUrls`, `logoUrl`, `portraitUrl`) are lifted to the top level. When `false` (default), records keep the original nested API shape (`basicInfo`, `propertyData`, `brokerDetails`, etc.).
+- `fetchSellerAgentDetails`: Off by default (fastest runs). When `true`, every land listing is enriched with the full seller / agent profile (`otherListings`, `soldListings`, `sellerCarouselListings`, `sellerMedia` socials, `landStarAwards`) attached as `agentProfile`. Adds one extra request per listing — roughly doubles run time and cost.
+- `monitoringMode`: When `true`, only scrapes listings/agents not seen in previous runs (default: false).
+- `maxConcurrency`: Maximum number of pages processed simultaneously (default: 10).
+- `minConcurrency`: Minimum number of pages processed simultaneously (default: 1).
+- `maxRequestRetries`: Number of retries for failed requests (default: 100).
+- `proxy`: Proxy settings. Defaults to Apify Residential proxy.
+
+## Monitoring Mode
+
+When `monitoringMode` is enabled, the scraper only collects listings or agents that weren't seen in previous runs. This is useful for:
+
+- Tracking new listings on a state / county search over time
+- Building a historical archive of properties or agents
+- Watching a market for new inventory without duplicating data
+
+### How Monitoring Mode Works
+
+1. The scraper maintains a record of previously scraped listing / agent IDs (in an Apify key-value store).
+2. On subsequent runs with `monitoringMode: true`, each item is checked against this record.
+3. Only new items (not in the record) are processed and added to the output.
+4. The record is updated with any new IDs found.
+
+## Output Listing(s) Structure
+
+The scraper provides comprehensive information about LandWatch property listings. The output includes detailed property information, broker details, and location data. Here's a breakdown of the main components:
+
+```
+{
+  "listingId": 422929612,
+  "h1": "Land for sale in Marion County, Illinois",
+  "basicInfo": {
+    "id": 26612457,
+    "siteListingId": 426016952,
+    "price": 12000, "priceDisplay": "$12,000", "pricePerAcre": 36363.64,
+    "address": "Lot 14 Putter Drive",
+    "city": "Athens", "county": "Menard County",
+    "state": "Illinois", "stateAbbreviation": "IL", "zip": "62613",
+    "acres": 0.33, "acresDisplay": "0.33 acres",
+    "latitude": 39.99, "longitude": -89.66,
+    "brokerName": "Jessica Plummer",
+    "brokerCompany": "Carolina Land Company, LLC",
+    "brokerPhone": "(217) 555-0123",
+    "imageIds": [5836253734, 5836253735, "..."],
+    "canonicalUrl": "/menard-county-illinois-undeveloped-land-for-sale/pid/426016952",
+    "...": "(many more search-card fields — see full sample below)"
+  },
+  "propertyData": {
+    "description": ["Build your dream home in Country Lake Estates..."],
+    "directions": "From I-72 take exit 88...",
+    "mlsId": "11999210", "parcelId": "12-34-567-890",
+    "imageDocumentIds": [5836253734, "..."],
+    "...": "(detailed property fields)"
+  },
+  "brokerDetails": {
+    "accountId": 174024, "companyName": "Carolina Land Company, LLC",
+    "phoneNumbers": { "officePhone": "(217) 555-0123", "...": "..." },
+    "...": "(broker card)"
+  },
+  "propertyAmenities": ["..."],
+  "propertyMediaData": { "...": "..." },
+  "listingEvents": [{ "eventDate": "2024-08-13", "newPrice": 12000 }],
+  "otherListings": ["..."],
+  "soldListings": ["..."],
+  "citiesInCounties": ["..."],
+  "contiguousCounties": ["..."],
+  "paginationData": { "pageIndex": 0, "totalCount": 248 }
+}
+```
+
+> **Full unabridged sample** (real captured record, every field present): readme-stuff/sample-listing.json.
+> When `flattenOutput=true`, `basicInfo` keys are lifted to the top level and `url` / `description` / `imageUrls` are added with full LandWatch URLs.
+
+## Output Fields Explanation
+
+### Basic Property Information
+
+- `basicInfo`: (Object) Core property listing information
+
+- `accountId`: (Number) Broker's account ID (matches brokerDetails.accountId)
+- `acres`: (Number) Total acreage of the property (e.g., 12.9)
+- `acresDisplay`: (String) Formatted display of acreage (e.g., "12.9 acres")
+- `adTargetingCountyId`: (Number) County ID used for ad targeting (e.g., 5592)
+- `address`: (String) Street address (may be partial for privacy, e.g., "Knight Road")
+- `auctionDate`: (String) Scheduled auction date ("0001-01-01T00:00:00" if not applicable)
+- `baths`/`beds`: (Number) Number of bathrooms and bedrooms (0 for land)
+- `bathsDisplay`/`bedsDisplay`: (String) Formatted display of room counts (empty for land)
+- `brokerCanonicalUrl`: (String) URL path to broker's profile (e.g., "/profile/scott-cornelson/725569")
+- `brokerCompany`: (String) Name of the brokerage firm (e.g., "Carolina Land Company, LLC")
+- `brokerName`: (String) Name of the listing agent (e.g., "Scott Cornelson")
+- `brokerPhone`: (String|null) Contact number for the broker (null if not provided)
+- `canonicalUrl`: (String) URL path to this listing (e.g., "/laurens-county-south-carolina-undeveloped-land-for-sale/pid/422387154")
+- `city`: (String) City where the property is located (e.g., "Gray Court")
+- `cityID`: (Number) Internal ID for the city (e.g., 10729)
+- `companyLogoDocumentId`: (Number) ID of the company logo image (0 if none)
+- `county`: (String) Full county name (e.g., "Laurens County")
+- `countyId`: (Number) Internal ID for the county (e.g., 5592)
+- `countyLabel`: (String) Type of county designation (e.g., "County")
+- `description`: (String) Truncated property description (full description in propertyData)
+- `encodedBoundaryPoints`: (String) Encoded polygon data for property boundaries (empty if not available)
+- `executiveSummary`: (String|null) Brief summary of the listing (null if not provided)
+- `externalSourceId`: (String|null) ID from external MLS (null if not applicable)
+- `halfBaths`: (Number) Number of half bathrooms (0 for land)
+- `halfBathsDisplay`: (String|null) Formatted display of half baths (null for land)
+- `hasCustomMap`: (Boolean) If the listing includes a custom map
+- `hasHouse`: (Boolean) If the property includes a house/structure (false for land)
+- `hasVideo`: (Boolean) If the listing includes video content
+- `hasVirtualTour`: (Boolean) If a virtual tour is available
+- `homesqft`: (Number) Size of any structures in square feet (0 for land)
+- `homesqftDisplay`: (String) Formatted display of home square footage (empty for land)
+- `imageAltTextDisplay`: (String) Alt text for the listing's main image
+- `imageCount`: (Number) Total number of images available (e.g., 18)
+- `imageIds`: (Array[Number]|null) List of image IDs (null if not loaded)
+- `insertDate`: (ISO Date) When the listing was created (e.g., "2025-03-24T07:44:12.263")
+- `id`: (Number) Internal listing ID (e.g., 22982658)
+- `isALC`: (Boolean) If the listing is from an Accredited Land Consultant
+- `isCourtesy`: (Boolean) If this is a courtesy listing
+- `isDiamond`/`isGold`/`isPlatinum`: (Boolean) Premium listing status indicators
+- `isFirstFreeListing`: (Boolean) If this is the broker's first free listing
+- `isLiked`: (Boolean) If the current user has liked/saved this listing
+- `isShowcase`: (Boolean) If this is a featured/spotlight listing
+- `lafPropertyId`: (Number) Internal property ID in LAF system (e.g., 37017035)
+- `lake`: (String|null) Name of nearby lake (null if not applicable)
+- `lastUpdated`: (ISO Date) When the listing was last modified (e.g., "2025-06-03T05:51:51.807")
+- `latitude`/`longitude`: (Number) Geographic coordinates of the property
+- `listHubListingKey`: (String|null) ID for ListHub integration (null if not applicable)
+- `listingLevel`: (Number) Tier/level of the listing (e.g., 30)
+- `listingLevelTitle`: (String) Name of the listing level (e.g., "Signature Partner")
+- `lwPropertyId`: (Number) LandWatch property ID (e.g., 422387154)
+- `onMarketDate`: (ISO Date) When the property was listed ("0001-01-01T00:00:00" if not available)
+- `parentAccountId`: (Number) ID of parent account (0 if none)
+- `partnerId`: (Number) ID of partner organization (0 if none)
+- `portraitDocumentId`: (Number) ID of the broker's profile image
+- `price`: (Number) Current listing price in USD (e.g., 253485)
+- `priceChangeAmount`: (Number) Absolute amount of last price change (negative for decrease, e.g., -15515)
+- `priceChangeDate`: (ISO Date) When the price was last changed (e.g., "2025-06-03T05:51:51.64")
+- `priceChangePercentage`: (Number) Percentage of last price change (negative for decrease, e.g., -0.0577 for -5.77%)
+- `priceDisplay`: (String) Formatted price with currency symbol (e.g., "$253,485")
+- `pricePerAcre`: (Number) Calculated price per acre (e.g., 19650)
+- `propertyTypes`: (Number) Bitmask of property type flags (e.g., 32)
+- `propertyTypesLabel`: (String) Human-readable list of property types (e.g., "Undeveloped Land")
+- `regionId`: (Number) Internal ID for the region (e.g., 197)
+- `salesDate`: (ISO Date) When the property sold ("0001-01-01T00:00:00" if not sold)
+- `salesPrice`: (Number) Final sale price (0 if not sold)
+- `schemaData`: (String) JSON-LD structured data for search engines
+- `shortPrice`: (String) Abbreviated price (e.g., "$253K")
+- `shortPriceChangeAmount`: (String) Formatted price change amount (e.g., "-$15.5K")
+- `siteListingId`: (Number) Listing ID on the main site (matches lwPropertyId)
+- `state`: (String) Full state name (e.g., "South Carolina")
+- `stateAbbreviation`: (String) Two-letter state code (e.g., "SC")
+- `stateCode`: (String) State code (usually same as abbreviation)
+- `stateId`: (Number) Internal ID for the state (e.g., 45)
+- `status`: (Number) Listing status code (1 = Active)
+- `thumbnailDocumentId`: (Number) ID of the thumbnail image (e.g., 5456623288)
+- `title`: (String) Listing title/headline (e.g., "12.90 +/- single family home site with acreage in Gray Court")
+- `types`: (Array[String]) Property type categories (e.g., ["Undeveloped Land"])
+- `upgradeLevelId`: (Number) ID of any upgrade package (0 if none)
+- `zip`: (String) ZIP/postal code (e.g., "29645")
+
+### Broker Information
+
+- `brokerDetails`: Comprehensive information about the listing agent or brokerage
+
+- `accountId`: (Number) Unique numeric identifier for the broker's LandWatch account (e.g., 725569)
+- `accountSubTypeId`: (Number) Subclassification of the broker account type (e.g., 5)
+- `accountType`: (Number) Main classification code for the broker account (e.g., 40 for standard broker)
+- `active`: (Boolean) Indicates if the broker's account is currently active
+- `adDesc`: (String) Advertisement description (often empty string)
+- `address1`/`address2`: (String) Broker's personal address components (often empty for privacy)
+- `alcCertified`: (Boolean) Indicates if broker is ALC (Accredited Land Consultant) certified
+- `alcAdvancedCertified`: (Boolean) Indicates if broker holds advanced ALC certification
+- `badgeId`: (Number|null) Identifier for any special achievement badges (null if none)
+- `canonicalUrl`: (String) Relative URL path to the broker's profile page (e.g., "/profile/scott-cornelson/725569")
+- `city`: (String) Broker's city of residence (e.g., "Greenville")
+- `companyAddress1`/`companyAddress2`: (String) Business address components (e.g., "PO Box 787")
+- `companyName`: (String) Legal business name (e.g., "Carolina Land Company, LLC")
+- `companyCity`/`companyState`/`companyZip`: (String) Business location details (e.g., "Greenville", "SC", "29602")
+- `contactName`: (String) Full name of the primary contact (e.g., "Scott Cornelson")
+- `description`: (Array[String]) Professional biography and credentials (e.g., ["Land Broker with over 25 years of experience..."])
+- `email`: (String|null) Contact email address (often null for privacy reasons)
+- `expirationDate`: (ISO Date) When the broker's listing subscription expires (e.g., "2025-07-05T00:00:00")
+- `homesContactId`: (String) Internal identifier for Homes.com integration (e.g., "0")
+- `homesUserId`: (String|null) User ID for Homes.com (null if not linked)
+- `insertDate`: (ISO Date) When the broker's account was created (e.g., "2014-08-26T06:56:10.543")
+- `isFree`: (Boolean) Indicates if the account is a free/basic account
+- `isSeller`: (Boolean) Indicates if the account can list properties for sale
+- `landStarWinCount`: (Number) Number of LandStar awards received (e.g., 0)
+- `leadRoutingEmail`: (String|null) Email for lead routing (null if not set)
+- `licenseNumber`: (String) Real estate license number (empty string if not provided)
+- `listingCount`: (Number) Number of active listings (may be 0 if not tracked here)
+- `logoId`: (Number|null) Internal ID for company logo image (null if none)
+- `optInLeadTargeting`: (Boolean) If broker has opted into lead targeting
+- `parentAccountId`: (Number) ID of parent/umbrella account (0 if none)
+- `parentAccountType`: (Number) Type of parent account (0 if none)
+- `phoneCell`/`phoneOffice`/`phoneFax`/`phoneTollFree`: (String|null) Contact numbers
+- `portraitId`: (Number) Internal ID for broker's profile picture (e.g., 3994781037)
+- `portraitImageUpdateDate`: (ISO Date|null) When the profile picture was last updated
+- `sellerListingStats`: (Object|null) Statistics about seller's listings (null if not available)
+- `smsNotifications`: (Boolean) If SMS notifications are enabled
+- `stateAbbreviation`: (String) Two-letter state code (e.g., "SC")
+- `stripeCustomerId`: (String|null) Stripe payment processor customer ID (null if not using Stripe)
+- `totalRows`: (Number) Total count of matching records (often 0 in this context)
+- `trackingPhoneNumber`: (String) Call tracking number for lead attribution (e.g., "(864) 635-4557")
+- `url`: (String) Company website URL (e.g., "[www.carolinalandcompany.com](http://www.carolinalandcompany.com)")
+- `zip`: (String) Broker's zip code (e.g., "29602")
+
+### Property Listing Metadata
+
+- `h1`: (String) Primary headline/title of the listing (e.g., "12.90 +/- single family home site with acreage in Gray Court")
+- `listingId`: (Number) Unique identifier for this specific property listing (e.g., 22982658)
+- `lwPropertyId`: (Number) LandWatch's internal property identifier
+- `canonicalUrl`: (String) Permanent URL path to this listing on LandWatch
+- `status`: (Number) Current status code (1 = Active, others may indicate pending/sold)
+- `insertDate`: (ISO Date) When the listing was first created
+- `lastUpdated`: (ISO Date) When the listing was last modified
+- `onMarketDate`: (ISO Date) When the property was listed for sale
+- `salesDate`: (ISO Date|null) When the property went under contract/sold
+
+### Listing Events & Price History
+
+- `listingEvents`: (Array[Object]) Chronological history of all listing events including price changes
+
+- `date`: (ISO Date) When the event occurred (e.g., "2025-06-03T00:00:00")
+- `price`: (Number) Listing price in USD at that time (e.g., 253485)
+- `priceDelta`: (Number|null) Percentage change from previous price (e.g., -5.77 for 5.77% decrease)
+- `acres`: (Number) Property size in acres at the time of the event (e.g., 12.9)
+- `acresDelta`: (Number|null) Change in acreage from previous listing (null for initial listing)
+- `eventTitle`: (String) Type of event (e.g., "Price", "Listed for Sale")
+
+### Facebook Tracking Data
+
+- `facebookDareJavascript`: (String) JSON string containing Facebook tracking data for the listing
+
+- `content_type`: (String) Type of content (e.g., "home_listing")
+- `content_ids`: (Array[Number]) Array containing the listing ID (e.g., [422387154])
+- `city`: (String) Property city (e.g., "Gray Court")
+- `region`: (String) State or region (e.g., "South Carolina")
+- `country`: (String) Country name (e.g., "United States")
+- `currency`: (String) Currency code (e.g., "USD")
+- `preferred_price_range`: (Number) Listing price in base currency (e.g., 253485)
+- `property_type`: (String) Type of property (e.g., "land")
+- `preferred_beds_range`: (Number) Number of bedrooms (0 for land)
+- `preferred_bath_range`: (Number) Number of bathrooms (0 for land)
+- `listing_type`: (String) Additional listing type information (empty if not specified)
+- `availability`: (String) Current listing status (e.g., "for_sale")
+
+### Price & Financial Information
+
+- `priceDisplay`: (String) Formatted price string with currency symbol (e.g., "$253,485")
+- `shortPrice`: (String) Abbreviated price (e.g., "$253.5K")
+- `pricePerAcre`: (Number) Calculated as total price divided by acreage
+- `salesPrice`: (Number) Final sale price if property has sold (0 if active)
+
+### Broker Media Data
+
+- `brokerMediaData`: (Object|null) Contains media assets related to the broker
+
+- Typically `null` unless the broker has uploaded additional media beyond the standard profile picture
+- When present, may include links to videos, virtual tours, or additional images
+
+### Location & Geography
+
+- `citiesInCounties`: (Array[Object]) Comprehensive list of cities within the property's county
+
+- `id`: (Number) Unique numeric identifier for the city (e.g., 5253)
+- `countyId`: (Number) Reference ID to the containing county (e.g., 5592)
+- `countyLabelPlural`: (String|null) Plural form of the county name (null if not specified)
+- `countyName`: (String|null) Name of the county (null if not specified)
+- `latitude`/`longitude`: (Number) Precise geographic coordinates (WGS84)
+
+- Example: 34.47804, -81.86399
+- `name`: (String) Official city name (e.g., "Clinton", "Cross Hill")
+- `regionId`: (Number) Regional identifier (0 if not specified)
+- `regionName`: (String|null) Name of the region (null if not specified)
+- `stateId`: (Number) Numeric identifier for the state (e.g., 45 for South Carolina)
+- `stateAbbreviation`: (String) Two-letter state code (e.g., "SC")
+- `stateName`: (String) Full state name (e.g., "South Carolina")
+- `contiguousCounties`: (Array[Object]) List of counties that share a boundary with the property's county
+
+- `name`: (String) Full county name (e.g., "Abbeville County")
+- `stateAbbreviation`: (String) Two-letter state code (e.g., "SC")
+- `stateId`: (Number) Numeric identifier for the state (e.g., 45)
+- `facebookDareJavascript`: (String) JSON string containing Facebook tracking data for the listing
+
+- Contains structured data about the property including:
+
+- `content_type`: Type of content (e.g., "home_listing")
+- `content_ids`: Array of listing IDs
+- Location details (city, region, country)
+- Price and property information
+- Example: `{"content_type":"home_listing","content_ids":[422387154],...}`
+
+### Physical Property Details
+
+- `propertyData`:
+
+- `acres`: (Number) Total land area in acres (e.g., 12.9)
+- `beds`/`baths`: (Number) Number of bedrooms and bathrooms (0 for land)
+- `homesqft`: (Number) Size of any structures in square feet
+- `description`: (Array[String]) Detailed narrative description
+- `directions`: (Array[String]) Written directions to the property
+- `propertyTypes`: (Number) Bitmask of property types
+- `propertyTypesLabel`: (String) Human-readable property types
+- `features`: (Array[String]) Notable characteristics or improvements
+
+### Media & Visual Content
+
+- `propertyData.images`: (Array[Object]) Collection of property photos
+
+- `documentId`: (Number) Internal media identifier
+- `imageId`: (Number) Unique image identifier
+- `url`: (String) Full URL to the high-resolution image
+- `caption`: (String) Optional descriptive text
+- `isPrimary`: (Boolean) Marks the featured image
+- `width`/`height`: (Number) Image dimensions in pixels
+- `label`: (String) Classification of the image
+
+### Amenities & Features
+
+- `propertyAmenities`: (Array[Object]) Categorized property characteristics
+
+- `name`: (String) Category name (e.g., "Activities", "Lot Description")
+- `categories`: (Array[Object]) Groups of related features
+
+- `name`: (String) Subcategory name
+- `amenities`: (Array[String]) Specific features in this group
+
+### Legal & Classification
+
+- `propertyData`:
+
+- `mlsNumber`: (String) Multiple Listing Service identifier
+- `zoning`: (String) Zoning classification
+- `parcelNumber`: (String) County assessor's parcel number (APN)
+- `taxAnnualAmount`: (Number) Annual property tax amount
+- `taxYear`: (Number) Assessment year for the tax amount
+- `zoningDescription`: (String) Detailed zoning information
+
+### Utilities & Infrastructure
+
+- `propertyData`:
+
+- `utilities`: (Array[String]) Available utility connections
+- `waterSource`: (String) Water supply type
+- `sewer`: (String) Sewage disposal method
+- `electricity`: (String) Electric service availability
+- `internet`: (String) Internet service options
+- `roadFrontage`: (String) Type of road access
+
+### Environmental & Topographical
+
+- `propertyData`:
+
+- `topography`: (String) General land contours
+- `terrain`: (String) Physical characteristics
+- `waterFeatures`: (Array[String]) Presence of water bodies
+- `vegetation`: (Array[String]) Types of plant life
+- `mineralRights`: (String) Mineral rights status
+- `floodZone`: (Boolean) If in a designated flood zone
+- `wetlands`: (Boolean) If contains protected wetlands
+
+### Financial & Investment
+
+- `propertyData`:
+
+- `capRate`: (Number) Capitalization rate for investments
+- `cashFlow`: (Number) Projected annual income
+- `grossIncome`: (Number) Total annual rental income
+- `operatingExpenses`: (Number) Annual operating costs
+- `zoning`: (String) Permitted uses and development potential
+
+### Legal & Disclosures
+
+- `propertyData`:
+
+- `disclosures`: (Array[String]) Required legal disclosures
+- `specialConditions`: (String) Any special terms
+- `easements`: (String) Existing easements
+- `restrictions`: (String) Deed restrictions
+- `associationFee`: (Number) HOA or community fees
+- `associationFeeFrequency`: (String) Payment frequency
+
+### Pagination Data
+
+- `paginationData`: (Object) Metadata about the current page and navigation
+
+- `canonicalUrl`: (String|null) Canonical URL for the current page (null if not applicable)
+- `locationName`: (String|null) Name of the current location being viewed (null if not applicable)
+- `metaDescription`: (String) SEO meta description for the page (e.g., "View 12.9 acres priced at $253,485 in Gray Court, Laurens County, SC. Browse photos, see details, and contact the seller.")
+- `nextLink`: (String|null) URL to the next page of results (null if on last page)
+- `pageHeader`: (String|null) Main header text for the page (null if not applicable)
+- `pageHeaderCount`: (String|null) Count indicator for the current page (e.g., "1-10 of 25")
+- `pageIndex`: (Number) Zero-based index of the current page (e.g., 0 for first page)
+- `pageSubHeader`: (String|null) Subheader text for the page (null if not applicable)
+- `pageTitle`: (String) Full page title (e.g., "Knight Road, Gray Court, SC 29645 | MLS: 1551888 | LandWatch")
+- `linkData`: (Object|null) Additional link data (null if not applicable)
+- `prevLink`: (String|null) URL to the previous page of results (null if on first page)
+- `relativeUrl`: (String|null) Relative URL for the current page (null if not applicable)
+- `searchBarLocationText`: (String|null) Text to display in the search bar (null if not applicable)
+- `siteName`: (String) Name of the website (e.g., "LandWatch")
+- `siteUrl`: (String|null) Base URL of the website (null if not applicable)
+
+### Property Data
+
+- `propertyData`: (Object) Core information about the property listing
+
+- `accountId`: (Number) ID of the broker/agent's account
+- `acres`: (Number) Total acreage of the property (e.g., 12.9)
+- `address`: (Object) Property address details
+
+- `address1`: (String) Primary street address (e.g., "Knight Road")
+- `address2`: (String) Secondary address line (usually empty)
+- `city`: (String) City name (e.g., "Gray Court")
+- `state`: (Number) Numeric state ID (e.g., 45)
+- `stateAbbreviation`: (String) Two-letter state code (e.g., "SC")
+- `stateName`: (String) Full state name (e.g., "South Carolina")
+- `zip`: (String) ZIP code (e.g., "29645")
+- `adTargetingPta`: (String) Property type for ad targeting (e.g., "land")
+- `areaLabel`: (String) Formatted area display (e.g., "12.9 acres")
+- `attachments`: (Array) List of file attachments (usually empty)
+- `auctionAddress`: (String|null) Address for auction (null if not an auction)
+- `auctionCity`: (String|null) City of auction (null if not an auction)
+- `auctionDate`: (String) Formatted auction date ("01/01/0001, 12:00 AM" if not applicable)
+- `auctionId`: (String|null) ID for the auction (null if not an auction)
+- `auctionState`: (String) Auction status (e.g., "UNDEFINED" if not an auction)
+- `auctionTitle`: (String|null) Title/name of the auction (null if not an auction)
+- `auctionUrl`: (String|null) URL for auction details (null if not an auction)
+- `baths`: (Number) Number of bathrooms (0 for land)
+- `beds`: (Number) Number of bedrooms (0 for land)
+- `breadcrumbSchema`: (String) JSON-LD structured data for breadcrumb navigation
+- `canDisplay`: (Boolean) Whether the listing can be displayed
+- `canonicalUrl`: (String) Canonical URL path for the listing (e.g., "/laurens-county-south-carolina-undeveloped-land-for-sale/pid/422387154")
+- `city`: (Object) City information
+
+- `id`: (Number) Internal city ID
+- `countyId`: (Number) ID of the containing county
+- `countyLabelPlural`: (String|null) Pluralized county label (null if not applicable)
+- `countyName`: (String|null) Name of the county (null if not applicable)
+- `latitude`: (Number) Latitude coordinate of the city
+- `longitude`: (Number) Longitude coordinate of the city
+- `name`: (String) City name
+- `regionId`: (Number) Internal region ID (0 if not applicable)
+- `regionName`: (String|null) Name of the region (null if not applicable)
+- `stateId`: (Number) Numeric state ID
+- `stateAbbreviation`: (String) Two-letter state code
+- `stateName`: (String) Full state name
+- `cityUrl`: (String) URL path for the city (e.g., "/south-carolina-land-for-sale/gray-court")
+- `county`: (Object) County information
+
+- `id`: (Number) Internal county ID
+- `fips`: (Number) FIPS code for the county
+- `lafCountyId`: (Number) LAF system county ID
+- `latitude`: (Number) Latitude coordinate (0 if not set)
+- `longitude`: (Number) Longitude coordinate (0 if not set)
+- `name`: (String) County name (e.g., "Laurens County")
+- `stateId`: (Number) Numeric state ID
+- `stateName`: (String|null) Full state name (null if not applicable)
+- `regionId`: (Number) Internal region ID (0 if not applicable)
+- `regionName`: (String|null) Name of the region (null if not applicable)
+- `countyUrl`: (String) URL path for the county (e.g., "/south-carolina-land-for-sale/laurens-county")
+- `description`: (Array[String]) List of description paragraphs
+- `directions`: (Array[String]) List of direction paragraphs (may be empty)
+- `disclaimer`: (String|null) Legal disclaimer text (null if none)
+- `executiveSummary`: (String|null) Brief summary of the property (null if none)
+- `externalLink`: (String) URL to the listing on the broker's website
+- `externalSourceId`: (String|null) ID from external MLS (null if not applicable)
+- `feedLastChecked`: (String|null) Timestamp of last feed check (null if not applicable)
+- `formattedDescription`: (String|null) Formatted HTML description (null if not available)
+- `geocodeAccuracy`: (Number) Accuracy level of geocoding (higher is more accurate)
+- `halfBaths`: (Number) Number of half bathrooms (0 for land)
+- `highlight1` to `highlight4`: (String|null) Featured highlights (null if not set)
+- `homesqft`: (Number) Square footage of any structures (0 for land)
+- `homesUserId`: (String|null) Internal user ID (null if not applicable)
+- `imageDocumentIds`: (Array[Number]) List of image document IDs
+- `imageInfo`: (Array[Object]) Detailed information about each image
+
+- `documentId`: (Number) Unique ID of the image document
+- `height`: (Number) Image height in pixels
+- `imageId`: (Number) Internal image ID
+- `label`: (String) Caption/description of the image
+- `width`: (Number) Image width in pixels
+- `isDiamond`: (Boolean) Premium listing status - Diamond level
+- `isGold`: (Boolean) Premium listing status - Gold level
+- `isPlatinum`: (Boolean) Premium listing status - Platinum level
+- `isShowcase`: (Boolean) Featured/spotlight listing status
+- `isListHubListing`: (Boolean) If listed on ListHub MLS
+- `isIrrigated`: (Boolean) If the property has irrigation
+- `isLiked`: (Boolean) If the current user has liked/saved this listing
+- `isFree`: (Boolean) If this is a free listing
+- `isResidence`: (Boolean) If the property includes a residence
+- `latitude`: (Number) Geographic latitude coordinate (e.g., 34.528647)
+- `longitude`: (Number) Geographic longitude coordinate (e.g., -82.197185)
+- `lastUpdated`: (String) Formatted last update timestamp (e.g., "June 3, 2025 at 5:51 AM")
+- `leadRoutingEmail`: (String|null) Email for lead routing (null if not set)
+- `linkInfos`: (Array[Object]) List of related links and categories
+
+- `labelText`: (String) Display text for the link (e.g., "Undeveloped Land")
+- `url`: (String) Relative URL path (e.g., "/undeveloped-land")
+- `listhubListingStatus`: (String|null) Status from ListHub integration (null if not applicable)
+- `listingDate`: (String) Date when the listing was created (ISO format, e.g., "2025-03-24")
+- `listingId`: (Number) Internal listing identifier (e.g., 22982658)
+- `listingLevel`: (Number) Tier/level of the listing (e.g., 30)
+- `listingSchema`: (String) JSON-LD structured data for the listing in schema.org format
+- `accountType`: (Number) Type of the account (e.g., 40 for standard broker)
+- `mainPhotoDocumentId`: (String) Document ID of the main/featured photo
+- `mlsId`: (String) MLS identifier (e.g., "1551888")
+- `parentAccountId`: (Number|null) ID of parent account (null if none)
+- `partnerId`: (Number|null) ID of partner organization (null if none)
+- `partnerName`: (String|null) Name of partner organization (null if none)
+- `participantKey`: (String) Internal participant identifier (e.g., "0")
+- `price`: (Number) Listing price in USD (e.g., 253485)
+- `pricingPlan`: (Object|null) Details about the pricing plan (null if not applicable)
+- `region`: (Object) Geographic region information
+
+- `countyIds`: (Array[Number]|null) List of county IDs in the region (null if not applicable)
+- `id`: (Number) Internal region ID (e.g., 197)
+- `name`: (String) Region name (e.g., "Upstate South Carolina")
+- `stateId`: (Number) Numeric state ID (0 if not state-specific)
+- `stateName`: (String|null) Full state name (null if not applicable)
+- `referenceName`: (String) Internal reference name for the property (e.g., "Lott")
+- `productSchema`: (String) JSON-LD structured data in schema.org/Product format
+- `resAndGeoSchema`: (String) JSON-LD structured data combining Residence and GeoCoordinates schemas
+- `shouldRedirectLDP`: (Boolean) Whether to redirect to listing detail page
+- `siteListingId`: (Number) Unique identifier for the listing on the site (e.g., 422387154)
+- `smallMapUrl`: (String) URL to a small static map image of the property location
+- `siteId`: (Number) Internal site identifier (e.g., 1113)
+- `state`: (Object) State information
+
+- `countyLabel`: (String) Label for county (e.g., "County")
+- `countyLabelPlural`: (String) Pluralized county label (e.g., "Counties")
+- `stateId`: (Number) Numeric state ID (e.g., 45)
+- `stateAbbreviation`: (String) Two-letter state code (e.g., "SC")
+- `stateName`: (String) Full state name (e.g., "South Carolina")
+- `taxRate`: (Number) State tax rate (e.g., 0.57 for 0.57%)
+- `marketStatus`: (Number) Current market status code (e.g., 1 for active)
+- `thirdPartyMapUrl`: (String) URL to third-party map service (e.g., id.land)
+- `title`: (String) Display title of the listing
+- `types`: (Array[String]) List of property type labels (e.g., ["Undeveloped Land"])
+- `typeIds`: (Array[Number]) Internal IDs for property types (e.g., [8, 32])
+- `upgradeLevelId`: (Number) ID of any upgrade package (0 if none)
+- `videoSchema`: (String) JSON-LD structured data for video (empty if none)
+- `youtubeVideoId`: (String|null) YouTube video ID (null if none)
+- `virtualTourLink`: (String) URL to virtual tour (empty if none)
+- `propertyMediaData`: (Object) Container for various media types
+
+- `youtubeVideo`: (Object|null) YouTube video details (null if none)
+- `matterportVirtualTour`: (Object|null) Matterport 3D tour details (null if none)
+- `vimeoVideo`: (Object|null) Vimeo video details (null if none)
+- `propertyOverlays`: (Array[Object]) List of map overlays for the property
+
+- `description`: (String|null) Description of the overlay (null if none)
+- `geometry`: (String) Comma-separated coordinates (e.g., "lat,lng")
+- `mainParcel`: (Boolean) If this is the primary parcel overlay
+- `name`: (String) Name of the overlay (e.g., "Custom")
+- `overlayId`: (Number) Unique identifier for the overlay
+- `overlayImages`: (Array) List of images associated with the overlay
+- `overlayTypeId`: (Number) Type identifier for the overlay
+- `propertyId`: (Number) ID of the associated property
+- `ptype`: (String) Type of overlay (e.g., "custom")
+- `styleString`: (String) JSON string with styling information
+- `uuid`: (String) Unique identifier for the overlay
+- `zIndex`: (Number) Stacking order for the overlay
+- `propertyTypes`: (Array[String]) Comprehensive list of all possible property types
+- `soldListings`: (Array) List of recently sold comparable properties (empty if none)
+- `uploadedSellerFiles`: (Array) List of files uploaded by the seller (empty if none)
+
+### Property Amenities & Features
+
+- `propertyAmenities`: (Array[Object]) Categorized list of property features and amenities
+
+- `name`: (String) Category name (e.g., "Land")
+- `categories`: (Array[Object]) Groups of related features
+
+- `name`: (String) Subcategory name (e.g., "Activities", "Game", "Lot Description")
+- `amenities`: (Array[String]) List of specific features in this category
+
+- Example activities: "Camping", "Conservation"
+- Example game: "Turkey", "Whitetail Deer"
+- Example lot features: "Acreage", "Heavily Treed", "Pasture", "Vacant"
+- Example road types: "Asphalt", "County"
+- Example utilities: "City Sewer"
+- Example topography: "Level", "Rolling"
+
+### Other Listings from Same Broker
+
+- `otherListings`: (Array[Object]) List of other properties listed by the same broker
+
+- `accountId`: (Number) Broker's account ID (matches brokerDetails.accountId)
+- `acres`: (Number) Size of the property in acres (e.g., 11.76)
+- `acresDisplay`: (String) Formatted display of acreage (e.g., "11.8 acres")
+- `adTargetingCountyId`: (Number) County ID used for ad targeting
+- `address`: (String) Street address (may be partial for privacy)
+- `auctionDate`: (ISO Date) Scheduled auction date ("0001-01-01T00:00:00" if not applicable)
+- `beds`/`baths`/`halfBaths`: (Number) Number of bedrooms, bathrooms, and half-bathrooms (0 for land)
+- `bedsDisplay`/`bathsDisplay`/`halfBathsDisplay`: (String) Formatted display of room counts
+- `brokerCanonicalUrl`: (String) URL path to broker's profile
+- `brokerCompany`: (String) Name of the brokerage firm
+- `brokerName`: (String) Name of the listing agent
+- `brokerPhone`: (String|null) Contact number for the broker
+- `canonicalUrl`: (String) URL path to this listing
+- `city`: (String) City where the property is located
+- `cityID`: (Number) Internal ID for the city
+- `companyLogoDocumentId`: (Number) ID of the company logo image (0 if none)
+- `county`: (String) Full county name
+- `countyId`: (Number) Internal ID for the county
+- `countyLabel`: (String) Type of county designation (e.g., "County")
+- `description`: (String) Full property description (may be truncated)
+- `encodedBoundaryPoints`: (String) Encoded polygon data for property boundaries
+- `executiveSummary`: (String|null) Brief summary of the listing (null if not provided)
+- `externalSourceId`: (String|null) ID from external MLS (null if not applicable)
+- `hasCustomMap`: (Boolean) If the listing includes a custom map
+- `hasHouse`: (Boolean) If the property includes a house/structure
+- `hasVideo`: (Boolean) If the listing includes video content
+- `hasVirtualTour`: (Boolean) If a 3D/virtual tour is available
+- `homesqft`: (Number) Size of any structures in square feet (0 for land)
+- `homesqftDisplay`: (String) Formatted display of home square footage
+- `imageAltTextDisplay`: (String) Alt text for the listing's main image
+- `imageCount`: (Number) Total number of images available
+- `imageIds`: (Array[Number]|null) List of image IDs (null if not loaded)
+- `insertDate`: (ISO Date) When the listing was created
+- `id`: (Number) Internal listing ID
+- `isALC`: (Boolean) If the listing is from an Accredited Land Consultant
+- `isCourtesy`: (Boolean) If this is a courtesy listing
+- `isDiamond`/`isGold`/`isPlatinum`: (Boolean) Premium listing status indicators
+- `isFirstFreeListing`: (Boolean) If this is the broker's first free listing
+- `isLiked`: (Boolean) If the current user has liked/saved this listing
+- `isShowcase`: (Boolean) If this is a featured/spotlight listing
+- `lafPropertyId`: (Number) Internal property ID in LAF system
+- `lake`: (String|null) Name of nearby lake (null if not applicable)
+- `lastUpdated`: (ISO Date) When the listing was last modified
+- `latitude`/`longitude`: (Number) Geographic coordinates of the property
+- `listHubListingKey`: (String|null) ID for ListHub integration
+- `listingLevel`: (Number) Tier/level of the listing (e.g., 30)
+- `listingLevelTitle`: (String) Name of the listing level (e.g., "Signature Partner")
+- `lwPropertyId`: (Number) LandWatch property ID
+- `onMarketDate`: (ISO Date) When the property was listed
+- `parentAccountId`: (Number) ID of parent account (0 if none)
+- `partnerId`: (Number) ID of partner organization (0 if none)
+- `portraitDocumentId`: (Number) ID of the broker's profile image
+- `price`: (Number) Current listing price in USD
+- `priceChangeAmount`: (Number) Absolute amount of last price change (negative for decrease)
+- `priceChangeDate`: (ISO Date) When the price was last changed
+- `priceChangePercentage`: (Number) Percentage of last price change (negative for decrease)
+- `priceDisplay`: (String) Formatted price with currency symbol (e.g., "$95,900")
+- `pricePerAcre`: (Number) Calculated price per acre (e.g., 8154.76)
+- `propertyTypes`: (Number) Bitmask of property type flags
+- `propertyTypesLabel`: (String) Human-readable list of property types
+- `regionId`: (Number) Internal ID for the region
+- `salesDate`: (ISO Date) When the property sold ("0001-01-01T00:00:00" if not sold)
+- `salesPrice`: (Number) Final sale price (0 if not sold)
+- `schemaData`: (String) JSON-LD structured data for search engines
+- `shortPrice`: (String) Abbreviated price (e.g., "$95.9K")
+- `shortPriceChangeAmount`: (String) Formatted price change amount (e.g., "-$29.1K")
+- `siteListingId`: (Number) Listing ID on the main site
+- `state`: (String) Full state name
+- `stateAbbreviation`: (String) Two-letter state code
+- `stateCode`: (String) State code (usually same as abbreviation)
+- `stateId`: (Number) Internal ID for the state
+- `status`: (Number) Listing status code (1 = Active)
+- `thumbnailDocumentId`: (Number) ID of the thumbnail image
+- `title`: (String) Listing title/headline
+- `types`: (Array[String]) Property type categories
+- `upgradeLevelId`: (Number) ID of any upgrade package (0 if none)
+- `zip`: (String) ZIP/postal code
+
+### System & Technical Fields
+
+- `lafPropertyId`: (Number) Internal database identifier
+- `externalSourceId`: (String) Identifier from external MLS
+- `geocodeAccuracy`: (Number) Precision of coordinates
+- `hasCustomMap`: (Boolean) If includes custom map overlay
+- `hasVideo`: (Boolean) If video content available
+- `hasVirtualTour`: (Boolean) If 3D/virtual tour available
+
+---
+
+## Output Agent(s) Structure
+
+The scraper provides comprehensive information about LandWatch property agents. The output includes detailed agent information, broker details, and location data. Here's a breakdown of the main components:
+
+```
+{
+  "sellerId": 174024,
+  "basicInfo": {
+    "accountId": 174024,
+    "companyName": "HomeLand Properties",
+    "contactName": "Texas Ranch Sales, LLC",
+    "city": "Hondo", "stateAbbreviation": "TX", "zip": "78861",
+    "phoneNumbers": {
+      "officePhone": "(830) 741-8906",
+      "preferredPhone": "(830) 741-8906",
+      "...": "..."
+    },
+    "url": "www.texasranchsalesllc.com",
+    "canonicalUrl": "/profile/homeland-properties/174024",
+    "logoId": 2703760373, "portraitId": 3832720652,
+    "description": ["For over 30 years, HomeLand Properties..."],
+    "...": "(same broker-card fields)"
+  },
+  "brokerDetails": { "...": "(broker card; same shape as basicInfo)" },
+  "sellerMedia": {
+    "Facebook":  { "mediaUrl": "https://www.facebook.com/HomeLandProperties", "...": "..." },
+    "Instagram": { "mediaUrl": "https://www.instagram.com/...", "...": "..." },
+    "Linkedin":  { "mediaUrl": "https://www.linkedin.com/company/...", "...": "..." }
+  },
+  "otherListings": ["..."],
+  "soldListings": ["..."],
+  "sellerCarouselListings": ["..."],
+  "landStarAwards": [{ "quarter": 1, "year": 2024 }, "..."],
+  "profileSchema": { "...": "..." },
+  "uploadedSellerFiles": ["..."],
+  "paginationData": { "...": "..." }
+}
+```
+
+> **Full unabridged sample** (real captured record, every field present): readme-stuff/sample-agent.json.
+> When `flattenOutput=true`, `basicInfo` and `brokerDetails` collapse into top-level fields and `url` / `logoUrl` / `portraitUrl` are added.
+
+## Output Agent(s) Fields Explanation
+
+### Basic Broker Information
+
+- `basicInfo`: Core information about the broker/agent
+
+- `accountId`: (Number) Unique identifier for the broker's LandWatch account
+- `accountSubTypeId`: (Number) Subtype classification of the account (e.g., 5)
+- `accountType`: (Number) Main account type (e.g., 41 for broker)
+- `active`: (Boolean) Whether the broker account is active
+- `address1`: (String) Primary business address line
+- `address2`: (String) Secondary business address line
+- `city`: (String) City of business location
+- `country`: (String) Country of business location
+- `email`: (String) Contact email address
+- `firstName`: (String) First name of the broker
+- `lastName`: (String) Last name of the broker
+- `phone`: (String) Primary contact phone number
+- `state`: (String) State abbreviation
+- `title`: (String) Professional title or designation
+- `url`: (String) Website URL
+- `zip`: (String) Zip/postal code
+
+### Broker Details
+
+- `brokerDetails`: Comprehensive information about the broker
+
+- `accountId`: (Number) Unique broker account identifier
+- `accountSubTypeId`: (Number) Subtype classification of the account
+- `accountType`: (Number) Main account type classification
+- `active`: (Boolean) Account activation status
+- `adDesc`: (String) Advertisement description
+- `address1`: (String) Primary business address
+- `address2`: (String) Secondary business address
+- `alcCertified`: (Boolean) ALC (Accredited Land Consultant) certification status
+- `alcAdvancedCertified`: (Boolean) Advanced ALC certification status
+- `badgeId`: (Number) ID of the broker's badge/credential
+- `canonicalUrl`: (String) Canonical URL for the broker's profile
+- `city`: (String) City of business location
+- `companyAddress1`: (String) Company's primary address line
+- `companyAddress2`: (String) Company's secondary address line
+- `companyName`: (String) Name of the broker's company
+- `companyCity`: (String) Company's city location
+- `companyState`: (String) Company's state location
+- `companyZip`: (String) Company's zip code
+- `contactName`: (String) Name for business contact
+- `description`: (Array[String]) Multi-line company description
+- `email`: (String|null) Contact email address
+- `expirationDate`: (ISO Date) Account expiration date
+- `homesContactId`: (String) Homes.com contact ID
+- `homesUserId`: (String|null) Homes.com user ID
+- `insertDate`: (ISO Date) Date when the broker account was created
+- `isFree`: (Boolean) Whether the account is a free tier
+- `isPhoneTPN`: (Boolean) Whether the phone number is a tracking phone number
+- `isSeller`: (Boolean) Whether the broker is a seller
+- `landStarWinCount`: (Number) Number of LandStar awards won
+- `leadRoutingEmail`: (String|null) Email for lead routing
+- `licenseNumber`: (String) Real estate license number
+- `listingCount`: (Number) Current number of active listings
+- `logoId`: (Number) ID of the company logo
+- `optInLeadTargeting`: (Boolean) Whether opted into lead targeting
+- `parentAccountId`: (Number) ID of parent account (0 if none)
+- `parentAccountType`: (Number) Type of parent account (0 if none)
+- `phoneCell`: (String) Mobile phone number
+- `phoneFax`: (String|null) Fax number
+- `phoneOffice`: (String) Office phone number
+- `phoneTollFree`: (String|null) Toll-free phone number
+- `portraitId`: (Number) ID of the broker's profile picture
+- `portraitImageUpdateDate`: (ISO Date|null) Last update date of profile picture
+- `sellerListingStats`: (Object) Historical listing statistics
+
+- `allTimePriceMin`: (Number) Minimum listing price ever
+- `allTimePriceMax`: (Number) Maximum listing price ever
+- `allTimeAcreageMin`: (Number) Minimum acreage ever
+- `allTimeAcreageMax`: (Number) Maximum acreage ever
+- `allTimeListingCount`: (Number) Total listings ever
+- `lastThreeYears`: (Object) Statistics for last 3 years
+- `lastFiveYears`: (Object) Statistics for last 5 years
+- `lastTenYears`: (Object) Statistics for last 10 years
+- `smsNotifications`: (Boolean) Whether SMS notifications are enabled
+- `stateAbbreviation`: (String) State abbreviation
+- `stripeCustomerId`: (String|null) Stripe customer ID
+- `totalRows`: (Number) Total number of rows in results
+- `trackingPhoneNumber`: (String) Phone number for lead tracking
+- `url`: (String) Website URL
+- `zip`: (String) Zip/postal code
+
+### LandStar Awards
+
+- `landStarAwards`: Array of LandStar awards won by the broker
+
+- `quarter`: (Number) Quarter of the year (0-4)
+- `year`: (Number) Year the award was won
+
+### Other Listings
+
+- `otherListings`: Array of other properties listed by the same broker
+
+- `accountId`: (Number) Broker's account ID
+- `acres`: (Number) Size of the property in acres
+- `acresDisplay`: (String) Formatted display of acreage
+- `adTargetingCountyId`: (Number) County ID for ad targeting
+- `address`: (String) Property address
+- `auctionDate`: (ISO Date) Date of auction (if applicable)
+- `baths`: (Number) Number of bathrooms
+- `bathsDisplay`: (String) Formatted display of bathrooms
+- `beds`: (Number) Number of bedrooms
+- `bedsDisplay`: (String) Formatted display of bedrooms
+- `brokerCanonicalUrl`: (String) Canonical URL for the broker's profile
+- `brokerCompany`: (String) Broker's company name
+- `brokerName`: (String) Broker's name
+- `brokerPhone`: (String|null) Broker's phone number
+- `canonicalUrl`: (String) Canonical URL for the listing
+- `city`: (String) City name
+- `cityID`: (Number) Internal city identifier
+- `companyLogoDocumentId`: (Number) ID of company logo
+- `county`: (String) County name
+- `countyId`: (Number) Internal county identifier
+- `countyLabel`: (String) Label for county display
+- `description`: (String) Property description
+- `encodedBoundaryPoints`: (String) Encoded coordinates of property boundary
+- `executiveSummary`: (String|null) Executive summary of the property
+- `externalSourceId`: (String|null) ID from external MLS
+- `halfBaths`: (Number) Number of half bathrooms
+- `halfBathsDisplay`: (String|null) Formatted display of half bathrooms
+- `hasCustomMap`: (Boolean) Whether the property has a custom map
+- `hasHouse`: (Boolean) Whether the property includes a house
+- `hasVideo`: (Boolean) Whether the property has video content
+- `hasVirtualTour`: (Boolean) Whether the property has a virtual tour
+- `homesqft`: (Number) Square footage of any home
+- `homesqftDisplay`: (String) Formatted display of square footage
+- `imageAltTextDisplay`: (String) Alt text for images
+- `imageCount`: (Number) Number of images
+- `imageIds`: (Array[Number]) IDs of all property images
+- `insertDate`: (ISO Date) Date the listing was created
+- `id`: (Number) Internal listing identifier
+- `isALC`: (Boolean) Whether the broker is ALC certified
+- `isCourtesy`: (Boolean) Whether it's a courtesy listing
+- `isDiamond`: (Boolean) Whether it's a Diamond level listing
+- `isFirstFreeListing`: (Boolean) Whether it's the broker's first free listing
+- `isGold`: (Boolean) Whether it's a Gold level listing
+- `isLiked`: (Boolean) Whether the listing has been liked
+- `isPlatinum`: (Boolean) Whether it's a Platinum level listing
+- `isShowcase`: (Boolean) Whether it's a showcase listing
+- `lafPropertyId`: (Number) Internal property identifier
+- `lake`: (String|null) Name of lake (if applicable)
+- `lastUpdated`: (ISO Date) Date the listing was last updated
+- `latitude`: (Number) Property latitude
+- `listHubListingKey`: (String|null) ListHub MLS key
+- `listingLevel`: (Number) Listing level code
+- `listingLevelTitle`: (String) Title of listing level
+- `longitude`: (Number) Property longitude
+- `lwPropertyId`: (Number) LandWatch property identifier
+- `onMarketDate`: (ISO Date) Date the property went on market
+- `parentAccountId`: (Number) Parent account ID (if applicable)
+- `partnerId`: (Number) Partner ID (if applicable)
+- `portraitDocumentId`: (Number) ID of broker's portrait
+- `firstName`: (String) Broker's first name
+- `lastName`: (String) Broker's last name
+- `phone`: (String) Contact phone number
+- `price`: (Number) Listing price
+- `priceDisplay`: (String) Formatted price display
+- `propertyTypes`: (Array[String]) Types of property
+- `propertyTypesLabel`: (String) Human-readable property types
+- `regionId`: (Number) Internal region identifier
+- `salesDate`: (ISO Date) Date of sale (if sold)
+- `salesPrice`: (Number) Sale price (if sold)
+- `state`: (String) Property state
+- `status`: (Number) Listing status code
+- `thumbnailDocumentId`: (Number) ID of thumbnail image
+- `title`: (String) Listing title
+- `types`: (Array[String]) Property type categories
+- `upgradeLevelId`: (Number) Upgrade package ID
+- `zip`: (String) Property zip code
+
+### Sold Listings
+
+- `soldListings`: Array of previously sold properties
+
+- Contains similar fields as otherListings but with additional sale information
+- `salesDate`: (ISO Date) Date when the property was sold
+- `salesPrice`: (Number) Final sale price
+- `status`: (Number) Status code indicating sold status
+
+### Pagination Data
+
+- `paginationData`: Information for pagination and navigation
+
+- `canonicalUrl`: (String) Canonical URL for the broker profile
+- `locationName`: (String|null) Name of the broker's location
+- `metaDescription`: (String) SEO meta description
+- `nextLink`: (String|null) URL for next page
+- `pageHeader`: (String) Page header text
+- `pageHeaderCount`: (Number|null) Number displayed in page header
+- `pageIndex`: (Number) Current page index
+- `pageSubHeader`: (String|null) Page subheader text
+- `pageTitle`: (String) Page title
+- `linkData`: (Object|null) Additional link data
+- `prevLink`: (String|null) URL for previous page
+- `relativeUrl`: (String|null) Relative URL for the page
+- `searchBarLocationText`: (String|null) Text for search bar location
+- `siteName`: (String|null) Site name
+- `siteUrl`: (String|null) Site URL
+
+### Seller Media
+
+- `sellerMedia`: Collection of media links and content for the broker
+
+- `Video`: (Object) Video content information
+
+- `active`: (Number) Activation status (1 = active)
+- `mediaId`: (String) ID of the media content
+- `mediaThumbnail`: (String|null) URL to thumbnail image
+- `mediaTypeId`: (Number) Type identifier for the media
+- `mediaUrl`: (String) URL to the media content
+- `oEmbedResponse`: (String|null) oEmbed response data
+- `providerId`: (Number) Provider identifier
+- `isVideo`: (Boolean) Whether the content is video
+- `Linkedin`: (Object) LinkedIn profile information
+
+- Same fields as Video object
+- `Facebook`: (Object) Facebook page information
+
+- Same fields as Video object
+- `Instagram`: (Object) Instagram profile information
+
+- Same fields as Video object
+
+### Seller Information
+
+- `sellerId`: (Number) Unique identifier for the seller/broker
+- `uploadedSellerFiles`: (Array) List of uploaded files by the seller (empty array if none)
+
+### Seller Carousel Listings
+
+- `sellerCarouselListings`: Array of featured listings in the seller's carousel
+
+- `canonicalUrl`: (String) Canonical URL for the listing
+- `imageAltTextDisplay`: (String) Alt text for images
+- `imageIds`: (Array[Number]) IDs of listing images
+- `id`: (Number) Internal listing identifier
+- `price`: (Number) Listing price
+- `status`: (Number) Listing status code
+
+### Sold Listings
+
+- `soldListings`: Array of properties that have been sold
+
+- `accountId`: (Number) Broker's account ID
+- `acres`: (Number) Size of the property in acres
+- `acresDisplay`: (String) Formatted display of acreage
+- `adTargetingCountyId`: (Number) County ID for ad targeting
+- `address`: (String) Property address
+- `auctionDate`: (ISO Date) Date of auction (if applicable)
+- `baths`: (Number) Number of bathrooms
+- `bathsDisplay`: (String) Formatted display of bathrooms
+- `beds`: (Number) Number of bedrooms
+- `bedsDisplay`: (String) Formatted display of bedrooms
+- `brokerCanonicalUrl`: (String) Canonical URL for the broker's profile
+- `brokerCompany`: (String) Broker's company name
+- `brokerName`: (String) Broker's name
+- `brokerPhone`: (String|null) Broker's phone number
+- `canonicalUrl`: (String) Canonical URL for the listing
+- `city`: (String) City name
+- `cityID`: (Number) Internal city identifier
+- `companyLogoDocumentId`: (Number) ID of company logo
+- `county`: (String) County name
+- `countyId`: (Number) Internal county identifier
+- `countyLabel`: (String) Label for county display
+- `description`: (String) Property description
+- `encodedBoundaryPoints`: (String) Encoded coordinates of property boundary
+- `executiveSummary`: (String|null) Executive summary of the property
+- `externalSourceId`: (String|null) ID from external MLS
+- `halfBaths`: (Number) Number of half bathrooms
+- `halfBathsDisplay`: (String|null) Formatted display of half bathrooms
+- `hasCustomMap`: (Boolean) Whether the property has a custom map
+- `hasHouse`: (Boolean) Whether the property includes a house
+- `hasVideo`: (Boolean) Whether the property has video content
+- `hasVirtualTour`: (Boolean) Whether the property has a virtual tour
+- `homesqft`: (Number) Square footage of any home
+- `homesqftDisplay`: (String) Formatted display of square footage
+- `imageAltTextDisplay`: (String) Alt text for images
+- `imageCount`: (Number) Number of images
+- `imageIds`: (Array[Number]|null) IDs of property images
+- `insertDate`: (ISO Date) Date the listing was created
+- `id`: (Number) Internal listing identifier
+- `isALC`: (Boolean) Whether the broker is ALC certified
+- `isCourtesy`: (Boolean) Whether it's a courtesy listing
+- `isDiamond`: (Boolean) Whether it's a Diamond level listing
+- `isFirstFreeListing`: (Boolean) Whether it's the broker's first free listing
+- `isGold`: (Boolean) Whether it's a Gold level listing
+- `isLiked`: (Boolean) Whether the listing has been liked
+- `isPlatinum`: (Boolean) Whether it's a Platinum level listing
+- `isShowcase`: (Boolean) Whether it's a showcase listing
+- `lafPropertyId`: (Number) Internal property identifier
+- `lake`: (String|null) Name of lake (if applicable)
+- `lastUpdated`: (ISO Date) Date the listing was last updated
+- `latitude`: (Number) Property latitude
+- `listHubListingKey`: (String|null) ListHub MLS key
+- `listingLevel`: (Number) Listing level code
+- `listingLevelTitle`: (String) Title of listing level
+- `longitude`: (Number) Property longitude
+- `lwPropertyId`: (Number) LandWatch property identifier
+- `onMarketDate`: (ISO Date) Date the property went on market
+- `parentAccountId`: (Number) Parent account ID (if applicable)
+- `partnerId`: (Number) Partner ID (if applicable)
+- `portraitDocumentId`: (Number) ID of broker's portrait
+- `price`: (Number) Listing price
+- `priceChangeAmount`: (Number) Amount of price change
+- `priceChangeDate`: (ISO Date) Date of last price change
+- `priceChangePercentage`: (Number) Percentage price change
+- `priceDisplay`: (String) Formatted price display
+- `pricePerAcre`: (Number) Price per acre
+- `propertyTypes`: (Number) Bitmask of property types
+- `propertyTypesLabel`: (String) Human-readable property types
+- `regionId`: (Number) Internal region identifier
+- `salesDate`: (ISO Date) Date of sale
+- `salesPrice`: (Number) Sale price
+- `schemaData`: (String) JSON-LD schema data for SEO
+- `shortPrice`: (String) Short formatted price
+- `shortPriceChangeAmount`: (String) Short formatted price change
+- `siteListingId`: (Number) Site-specific listing identifier
+- `state`: (String) State name
+- `stateAbbreviation`: (String) State abbreviation
+- `stateCode`: (String) State code
+- `stateId`: (Number) Internal state identifier
+- `status`: (Number) Listing status code (4 = Sold)
+- `thumbnailDocumentId`: (Number) ID of thumbnail image
+- `title`: (String) Listing title
+- `types`: (Array[String]) Property type categories
+- `upgradeLevelId`: (Number) Upgrade package ID
+- `zip`: (String) Zip code
+
+### Basic Broker Information
+
+- `basicInfo`: Core information about the broker/agent
+
+- `accountId`: (Number) Unique identifier for the broker's LandWatch account
+- `accountSubTypeId`: (Number) Subtype classification of the account
+- `accountType`: (Number) Main account type classification
+- `active`: (Boolean) Account activation status
+- `adDesc`: (String) Advertisement description
+- `address1`: (String) Primary business address line
+- `address2`: (String) Secondary business address line
+- `alcCertified`: (Boolean) ALC (Accredited Land Consultant) certification status
+- `alcAdvancedCertified`: (Boolean) Advanced ALC certification status
+- `badgeId`: (Number) ID of the broker's badge/credential
+- `canonicalUrl`: (String) Canonical URL for the broker's profile
+- `city`: (String) City of business location
+- `companyAddress1`: (String) Company's primary address line
+- `companyAddress2`: (String) Company's secondary address line
+- `companyName`: (String) Name of the broker's company
+- `companyCity`: (String) Company's city location
+- `companyState`: (String) Company's state location
+- `companyZip`: (String) Company's zip code
+- `contactName`: (String) Name for business contact
+- `description`: (Array[String]) Multi-line company description
+- `email`: (String|null) Contact email address
+- `expirationDate`: (ISO Date|null) Account expiration date
+- `homesContactId`: (String|null) Homes.com contact ID
+- `homesUserId`: (String|null) Homes.com user ID
+- `insertDate`: (ISO Date|null) Date when the broker account was created
+- `isFree`: (Boolean) Whether the account is a free tier
+- `isPhoneTPN`: (Boolean) Whether the phone number is a tracking phone number
+- `isSeller`: (Boolean) Whether the broker is a seller
+- `landStarWinCount`: (Number) Number of LandStar awards won
+- `leadRoutingEmail`: (String|null) Email for lead routing
+- `licenseNumber`: (String) Real estate license number
+- `listingCount`: (Number) Current number of active listings
+- `logoId`: (Number) ID of the company logo
+- `optInLeadTargeting`: (Boolean) Whether opted into lead targeting
+- `parentAccountId`: (Number) ID of parent account (0 if none)
+- `parentAccountType`: (Number) Type of parent account (0 if none)
+- `phoneCell`: (String) Mobile phone number
+- `phoneFax`: (String|null) Fax number
+- `phoneOffice`: (String) Office phone number
+- `phoneTollFree`: (String|null) Toll-free phone number
+- `portraitId`: (Number) ID of the broker's profile picture
+- `portraitImageUpdateDate`: (ISO Date|null) Last update date of profile picture
+- `sellerListingStats`: (Object) Historical listing statistics
+
+- `allTimePriceMin`: (Number) Minimum listing price ever
+- `allTimePriceMax`: (Number) Maximum listing price ever
+- `allTimeAcreageMin`: (Number) Minimum acreage ever
+- `allTimeAcreageMax`: (Number) Maximum acreage ever
+- `allTimeListingCount`: (Number) Total listings ever
+- `lastThreeYears`: (Object) Statistics for last 3 years
+- `lastFiveYears`: (Object) Statistics for last 5 years
+- `lastTenYears`: (Object) Statistics for last 10 years
+- `smsNotifications`: (Boolean) Whether SMS notifications are enabled
+- `stateAbbreviation`: (String) State abbreviation
+- `stripeCustomerId`: (String|null) Stripe customer ID
+- `totalRows`: (Number) Total number of rows in results
+- `trackingPhoneNumber`: (String) Phone number for lead tracking
+- `url`: (String) Website URL
+- `zip`: (String) Zip/postal code
+
+## Explore More Scrapers
+
+If you found this Apify LandWatch Profile Scraper useful, be sure to check out our other powerful scrapers and actors at [memo23's Apify profile](https://apify.com/memo23). We offer a wide range of tools to enhance your web scraping and automation needs across various platforms and use cases.
 
 ## Support
 
-For help, use the actor page or Issues section. Include the input used with any sensitive values redacted, the run ID, expected versus actual behavior, and a small output sample when it helps explain the issue. Avoid including private, confidential, or unnecessary personal data in support requests.
+- For issues or feature requests, please use the [Issues](https://console.apify.com/actors/IWIOv7oeNxfcjTnX5/issues) section of this actor.
+- If you need customization or have questions, feel free to contact the author:
+
+- Author's website: [https://muhamed-didovic.github.io/](https://muhamed-didovic.github.io/)
+- Email: [muhamed.didovic@gmail.com](mailto:muhamed.didovic@gmail.com)
+
+## Additional Services
+
+- Request customization or whole dataset: [muhamed.didovic@gmail.com](mailto:muhamed.didovic@gmail.com)
+- If you need anything else scraped, or this actor customized, email: [muhamed.didovic@gmail.com](mailto:muhamed.didovic@gmail.com)
+- For API services of this scraper (no Apify fee, just usage fee for the API), contact: [muhamed.didovic@gmail.com](mailto:muhamed.didovic@gmail.com)
+- Email: [muhamed.didovic@gmail.com](mailto:muhamed.didovic@gmail.com)
